@@ -20,6 +20,9 @@
     "dev": "vite",
     "build": "vite build --mode lib",
     "build:demo": "vite build",
+    "build:wp": "vite build --mode wp",
+    "build:all": "npm run build && npm run build:wp",
+    "zip": "npm run build:all && mkdir -p releases && zip -r releases/thumbnailer.zip dist thumbnailer.php css readme.txt",
     "upgrade": "npx npm-check-updates -u && npm install"
   },
   "devDependencies": {

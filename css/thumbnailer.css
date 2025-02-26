@@ -1,0 +1,27 @@
+.thumbnailer-container {
+  margin: 10px 0;
+  display: block;
+}
+
+.thumbnailer-button {
+  padding: 8px 16px;
+  background-color: #0073aa;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.thumbnailer-button:hover {
+  background-color: #005d8c;
+}
+
+.thumbnailer-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.thumbnailer-input {
+  display: none;
+}
