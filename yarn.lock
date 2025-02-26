@@ -245,8 +245,10 @@ __metadata:
   dependencies:
     "@privyid/ghostscript": "npm:^0.1.0-alpha.1"
     "@privyid/ghoulscript": "npm:^0.1.0-alpha.4"
+    "@types/image-blob-reduce": "npm:^4"
     "@types/pica": "npm:^9"
     birpc: "npm:^2.2.0"
+    image-blob-reduce: "npm:^4.1.0"
     pica: "npm:^9.0.1"
     rollup: "npm:^4.34.8"
     typescript: "npm:5.7.3"
@@ -552,7 +554,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/pica@npm:^9":
+"@types/image-blob-reduce@npm:^4":
+  version: 4.1.4
+  resolution: "@types/image-blob-reduce@npm:4.1.4"
+  dependencies:
+    "@types/pica": "npm:*"
+  checksum: 10c0/0c9887fc52f4c3e8e984e9746a7729b23f3228beb91603ba23340266bf347ab77b86a5a9bfc761beccf8ea1e117dbdd974faa88d1a9d015417b891b082719303
+  languageName: node
+  linkType: hard
+
+"@types/pica@npm:*, @types/pica@npm:^9":
   version: 9.0.5
   resolution: "@types/pica@npm:9.0.5"
   checksum: 10c0/9a4092ade9376ca02959cff73bbb290924d2bcb6eef1e79247ece16781055f4327015e084346722b280f6b1d60987093876953eb71932b18199eed7c21cc8c67
@@ -940,6 +951,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"image-blob-reduce@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "image-blob-reduce@npm:4.1.0"
+  dependencies:
+    pica: "npm:^9.0.0"
+  checksum: 10c0/51adc1a65afdb9610102eff4a435a3460e29ebcc04ef1909237fecf3a72e791122e801261efeadeccb3e970bf28463ee5bad1c2839de5ffa842eb8c5fd25781d
+  languageName: node
+  linkType: hard
+
 "imurmurhash@npm:^0.1.4":
   version: 0.1.4
   resolution: "imurmurhash@npm:0.1.4"
@@ -1221,7 +1241,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pica@npm:^9.0.1":
+"pica@npm:^9.0.0, pica@npm:^9.0.1":
   version: 9.0.1
   resolution: "pica@npm:9.0.1"
   dependencies:

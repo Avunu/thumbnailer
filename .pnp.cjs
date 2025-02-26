@@ -29,8 +29,10 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@privyid/ghostscript", "npm:0.1.0-alpha.1"],\
           ["@privyid/ghoulscript", "npm:0.1.0-alpha.4"],\
+          ["@types/image-blob-reduce", "npm:4.1.4"],\
           ["@types/pica", "npm:9.0.5"],\
           ["birpc", "npm:2.2.0"],\
+          ["image-blob-reduce", "npm:4.1.0"],\
           ["pica", "npm:9.0.1"],\
           ["rollup", "npm:4.34.8"],\
           ["typescript", "patch:typescript@npm%3A5.7.3#optional!builtin<compat/typescript>::version=5.7.3&hash=5786d5"],\
@@ -362,8 +364,10 @@ const RAW_RUNTIME_STATE =
           ["@privyid/ghoulscript-sample", "workspace:."],\
           ["@privyid/ghostscript", "npm:0.1.0-alpha.1"],\
           ["@privyid/ghoulscript", "npm:0.1.0-alpha.4"],\
+          ["@types/image-blob-reduce", "npm:4.1.4"],\
           ["@types/pica", "npm:9.0.5"],\
           ["birpc", "npm:2.2.0"],\
+          ["image-blob-reduce", "npm:4.1.0"],\
           ["pica", "npm:9.0.1"],\
           ["rollup", "npm:4.34.8"],\
           ["typescript", "patch:typescript@npm%3A5.7.3#optional!builtin<compat/typescript>::version=5.7.3&hash=5786d5"],\
@@ -716,6 +720,16 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../.yarn/berry/cache/@types-estree-npm-1.0.6-b5e23f2ea2-10c0.zip/node_modules/@types/estree/",\
         "packageDependencies": [\
           ["@types/estree", "npm:1.0.6"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["@types/image-blob-reduce", [\
+      ["npm:4.1.4", {\
+        "packageLocation": "../../.yarn/berry/cache/@types-image-blob-reduce-npm-4.1.4-e265ce03e0-10c0.zip/node_modules/@types/image-blob-reduce/",\
+        "packageDependencies": [\
+          ["@types/image-blob-reduce", "npm:4.1.4"],\
+          ["@types/pica", "npm:9.0.5"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -1098,6 +1112,16 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["iconv-lite", "npm:0.6.3"],\
           ["safer-buffer", "npm:2.1.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["image-blob-reduce", [\
+      ["npm:4.1.0", {\
+        "packageLocation": "../../.yarn/berry/cache/image-blob-reduce-npm-4.1.0-0b1aca7a62-10c0.zip/node_modules/image-blob-reduce/",\
+        "packageDependencies": [\
+          ["image-blob-reduce", "npm:4.1.0"],\
+          ["pica", "npm:9.0.1"]\
         ],\
         "linkType": "HARD"\
       }]\

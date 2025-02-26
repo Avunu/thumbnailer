@@ -1,13 +1,23 @@
 export interface WorkerRequest {
-  type: 'initialize' | 'process';
+  type: 'initialize' | 'createThumbnail';
   id: string;
-  payload?: Uint8Array;
+  payload?: {
+    file: Uint8Array;
+    filename: string;
+    mimeType: string;
+    maxWidth: number;
+  };
 }
 
 export interface WorkerResponse {
-  type: 'initialized' | 'processed' | 'error';
+  type: 'initialized' | 'thumbnail' | 'error';
   id: string;
-  payload?: Uint8Array;
+  payload?: {
+    image: Uint8Array;
+    mimeType: string;
+    width: number;
+    height: number;
+  };
   error?: string;
 }
 
