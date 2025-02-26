@@ -239,37 +239,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@privyid/ghoulscript-sample@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "@privyid/ghoulscript-sample@workspace:."
-  dependencies:
-    "@privyid/ghostscript": "npm:^0.1.0-alpha.1"
-    "@privyid/ghoulscript": "npm:^0.1.0-alpha.4"
-    "@types/image-blob-reduce": "npm:^4"
-    "@types/pica": "npm:^9"
-    birpc: "npm:^2.2.0"
-    image-blob-reduce: "npm:^4.1.0"
-    pica: "npm:^9.0.1"
-    rollup: "npm:^4.34.8"
-    typescript: "npm:5.7.3"
-    vite: "npm:6.0.9"
-    vite-plugin-top-level-await: "npm:^1.5.0"
-    vite-plugin-wasm: "npm:^3.4.1"
-    wasm-vips: "npm:^0.0.11"
-  languageName: unknown
-  linkType: soft
-
-"@privyid/ghoulscript@npm:^0.1.0-alpha.4":
-  version: 0.1.0-alpha.4
-  resolution: "@privyid/ghoulscript@npm:0.1.0-alpha.4"
-  dependencies:
-    "@privyid/ghostscript": "npm:^0.1.0-alpha.1"
-    defu: "npm:^6.1.4"
-    ufo: "npm:^1.5.3"
-  checksum: 10c0/30d360e6b5463e194f997c7462da38d989dbb2042dea7393df1745d55e0939d68294d6a58006c7dd4225d871767dc71331739fd21d3e2f49fad502cace03da0b
-  languageName: node
-  linkType: hard
-
 "@rollup/plugin-virtual@npm:^3.0.2":
   version: 3.0.2
   resolution: "@rollup/plugin-virtual@npm:3.0.2"
@@ -554,22 +523,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/image-blob-reduce@npm:^4":
-  version: 4.1.4
-  resolution: "@types/image-blob-reduce@npm:4.1.4"
-  dependencies:
-    "@types/pica": "npm:*"
-  checksum: 10c0/0c9887fc52f4c3e8e984e9746a7729b23f3228beb91603ba23340266bf347ab77b86a5a9bfc761beccf8ea1e117dbdd974faa88d1a9d015417b891b082719303
-  languageName: node
-  linkType: hard
-
-"@types/pica@npm:*, @types/pica@npm:^9":
-  version: 9.0.5
-  resolution: "@types/pica@npm:9.0.5"
-  checksum: 10c0/9a4092ade9376ca02959cff73bbb290924d2bcb6eef1e79247ece16781055f4327015e084346722b280f6b1d60987093876953eb71932b18199eed7c21cc8c67
-  languageName: node
-  linkType: hard
-
 "abbrev@npm:^3.0.0":
   version: 3.0.0
   resolution: "abbrev@npm:3.0.0"
@@ -618,13 +571,6 @@ __metadata:
   version: 1.0.2
   resolution: "balanced-match@npm:1.0.2"
   checksum: 10c0/9308baf0a7e4838a82bbfd11e01b1cb0f0cf2893bc1676c27c2a8c0e70cbae1c59120c3268517a8ae7fb6376b4639ef81ca22582611dbee4ed28df945134aaee
-  languageName: node
-  linkType: hard
-
-"birpc@npm:^2.2.0":
-  version: 2.2.0
-  resolution: "birpc@npm:2.2.0"
-  checksum: 10c0/7866197d0dd2f65473161d1959ad543f0903a6ead480605ce0f1138ced28389821d80c54627722462181c18b62fe60297166658cc80d9836e192a1df84c51077
   languageName: node
   linkType: hard
 
@@ -700,13 +646,6 @@ __metadata:
     supports-color:
       optional: true
   checksum: 10c0/db94f1a182bf886f57b4755f85b3a74c39b5114b9377b7ab375dc2cfa3454f09490cc6c30f829df3fc8042bc8b8995f6567ce5cd96f3bc3688bd24027197d9de
-  languageName: node
-  linkType: hard
-
-"defu@npm:^6.1.4":
-  version: 6.1.4
-  resolution: "defu@npm:6.1.4"
-  checksum: 10c0/2d6cc366262dc0cb8096e429368e44052fdf43ed48e53ad84cc7c9407f890301aa5fcb80d0995abaaf842b3949f154d060be4160f7a46cb2bc2f7726c81526f5
   languageName: node
   linkType: hard
 
@@ -901,13 +840,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glur@npm:^1.1.2":
-  version: 1.1.2
-  resolution: "glur@npm:1.1.2"
-  checksum: 10c0/756fcbc7f1a8576755811e31367feeaffbd13b7f20d788672bccbd65956839065e256621a7576f4ab321352b28a0aea442d64567bca23882526b891767ffbe3e
-  languageName: node
-  linkType: hard
-
 "graceful-fs@npm:^4.2.6":
   version: 4.2.11
   resolution: "graceful-fs@npm:4.2.11"
@@ -948,15 +880,6 @@ __metadata:
   dependencies:
     safer-buffer: "npm:>= 2.1.2 < 3.0.0"
   checksum: 10c0/98102bc66b33fcf5ac044099d1257ba0b7ad5e3ccd3221f34dd508ab4070edff183276221684e1e0555b145fce0850c9f7d2b60a9fcac50fbb4ea0d6e845a3b1
-  languageName: node
-  linkType: hard
-
-"image-blob-reduce@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "image-blob-reduce@npm:4.1.0"
-  dependencies:
-    pica: "npm:^9.0.0"
-  checksum: 10c0/51adc1a65afdb9610102eff4a435a3460e29ebcc04ef1909237fecf3a72e791122e801261efeadeccb3e970bf28463ee5bad1c2839de5ffa842eb8c5fd25781d
   languageName: node
   linkType: hard
 
@@ -1146,16 +1069,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"multimath@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "multimath@npm:2.0.0"
-  dependencies:
-    glur: "npm:^1.1.2"
-    object-assign: "npm:^4.1.1"
-  checksum: 10c0/3e60b7e0ec69b19114d6a2419e86ca456c852a30d40ae37f6d6bd9377c2e98d8df2e33313e917e2c70dd6d08660345cc2183066679bbd43fb6848a7aba16cb02
-  languageName: node
-  linkType: hard
-
 "nanoid@npm:^3.3.8":
   version: 3.3.8
   resolution: "nanoid@npm:3.3.8"
@@ -1203,13 +1116,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"object-assign@npm:^4.1.1":
-  version: 4.1.1
-  resolution: "object-assign@npm:4.1.1"
-  checksum: 10c0/1f4df9945120325d041ccf7b86f31e8bcc14e73d29171e37a7903050e96b81323784ec59f93f102ec635bcf6fa8034ba3ea0a8c7e69fa202b87ae3b6cec5a414
-  languageName: node
-  linkType: hard
-
 "p-map@npm:^7.0.2":
   version: 7.0.3
   resolution: "p-map@npm:7.0.3"
@@ -1238,18 +1144,6 @@ __metadata:
     lru-cache: "npm:^10.2.0"
     minipass: "npm:^5.0.0 || ^6.0.2 || ^7.0.0"
   checksum: 10c0/32a13711a2a505616ae1cc1b5076801e453e7aae6ac40ab55b388bb91b9d0547a52f5aaceff710ea400205f18691120d4431e520afbe4266b836fadede15872d
-  languageName: node
-  linkType: hard
-
-"pica@npm:^9.0.0, pica@npm:^9.0.1":
-  version: 9.0.1
-  resolution: "pica@npm:9.0.1"
-  dependencies:
-    glur: "npm:^1.1.2"
-    multimath: "npm:^2.0.0"
-    object-assign: "npm:^4.1.1"
-    webworkify: "npm:^1.5.0"
-  checksum: 10c0/1378f493ea4d2cc810ee31ca4e2fcaf7afe7330d8c03b0a4b2a26046de3eb4abaa5e21a2dc1bc7f26cc878f81d1e17eb3f54893ce0ca1241d32313436f52570f
   languageName: node
   linkType: hard
 
@@ -1522,6 +1416,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"thumbnail-generator@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "thumbnail-generator@workspace:."
+  dependencies:
+    "@privyid/ghostscript": "npm:^0.1.0-alpha.1"
+    rollup: "npm:^4.34.8"
+    typescript: "npm:5.7.3"
+    vite: "npm:6.0.9"
+    vite-plugin-top-level-await: "npm:^1.5.0"
+    vite-plugin-wasm: "npm:^3.4.1"
+    wasm-vips: "npm:^0.0.11"
+  languageName: unknown
+  linkType: soft
+
 "typescript@npm:5.7.3":
   version: 5.7.3
   resolution: "typescript@npm:5.7.3"
@@ -1539,13 +1447,6 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10c0/6fd7e0ed3bf23a81246878c613423730c40e8bdbfec4c6e4d7bf1b847cbb39076e56ad5f50aa9d7ebd89877999abaee216002d3f2818885e41c907caaa192cc4
-  languageName: node
-  linkType: hard
-
-"ufo@npm:^1.5.3":
-  version: 1.5.4
-  resolution: "ufo@npm:1.5.4"
-  checksum: 10c0/b5dc4dc435c49c9ef8890f1b280a19ee4d0954d1d6f9ab66ce62ce64dd04c7be476781531f952a07c678d51638d02ad4b98e16237be29149295b0f7c09cda765
   languageName: node
   linkType: hard
 
@@ -1654,13 +1555,6 @@ __metadata:
   version: 0.0.11
   resolution: "wasm-vips@npm:0.0.11"
   checksum: 10c0/2aa7b5e31bc1f0aa76696f823d09af2d6b9779adb50dc7c6fb2296d7f66d4570434afd7d29b279a144f916cea4f88e33578e3587f437655d22d3f793294dff86
-  languageName: node
-  linkType: hard
-
-"webworkify@npm:^1.5.0":
-  version: 1.5.0
-  resolution: "webworkify@npm:1.5.0"
-  checksum: 10c0/f451e42c5dc6e8f467736788ce05eef74455d6735705e5459825250b1c10db3e6087abdca149d965e86974a988109c4aa328d93ace3a252bad2f2889ab181bbb
   languageName: node
   linkType: hard
 

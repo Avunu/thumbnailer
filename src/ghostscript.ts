@@ -15,7 +15,7 @@ export async function initializeGhostscript() {
 export async function renderPageAsImage(
   input: Uint8Array,
   pageNumber: number = 1,
-  resolution: number = 96
+  resolution: number = 150
 ): Promise<Uint8Array> {
   const gs = await initializeGhostscript()
   
@@ -28,9 +28,11 @@ export async function renderPageAsImage(
     `-sPageList=${pageNumber}`,
     `-r${resolution}`,
     '-dJPEGQ=90',
-    '-dQFactor=0.75',
-    '-dTextAlphaBits=1',
-    '-dGraphicsAlphaBits=1',
+    '-dQFactor=0.90',
+    '-dTextAlphaBits=4',
+    '-dGraphicsAlphaBits=4',
+    '-dDOINTERPOLATE',
+    '-dMaxBitmap=500000000',
     '-sOutputFile=./output',
     './input'
   ]

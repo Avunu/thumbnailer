@@ -1,10 +1,10 @@
 import type { WorkerRequest, WorkerResponse } from './types'
 
-if (!window.gsWorker) {
-  throw new Error('GhoulScript worker not initialized')
+if (!window.thumbnailGen) {
+  throw new Error('Thumbnail Generator worker not initialized')
 }
 
-const worker = window.gsWorker
+const worker = window.thumbnailGen
 const pendingRequests = new Map<string, (response: WorkerResponse) => void>()
 const input = document.querySelector<HTMLInputElement>('#input')
 const preview = document.querySelector<HTMLImageElement>('#preview')

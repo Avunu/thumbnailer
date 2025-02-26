@@ -23,6 +23,6 @@ export interface WorkerResponse {
 
 declare global {
   interface Window {
-    gsWorker: Worker;
+    thumbnailGen: Worker;
   }
 }

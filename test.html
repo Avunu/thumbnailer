@@ -3,9 +3,10 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vite + TS</title>
+  <title>Thumbnail Generator Test</title>
+  <!-- The loader.ts file will handle worker initialization -->
+  <script type="module" src="/src/loader.ts"></script>
 </head>
 
 <body>
@@ -16,11 +17,6 @@
     <div id="log"></div>
     <img id="preview" alt="Preview" style="width: 500px; height: auto;">
   </div>
-  <script>
-    // Initialize GhoulScript worker
-    window.gsWorker = new Worker('/src/worker.ts', { type: 'module' });
-    window.gsWorker.onerror = console.error;
-  </script>
   <script type="module" src="/src/main.ts"></script>
 </body>
 
