@@ -12,6 +12,7 @@
 *.suo
 *.sw?
 dist
+dist-demo
 dist-ssr
 lerna-debug.log*
 logs

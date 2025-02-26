@@ -1,23 +1,36 @@
 {
-  "name": "thumbnail-generator",
+  "name": "thumbnailer",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
+  "files": [
+    "dist"
+  ],
+  "types": "./dist/index.d.ts",
+  "main": "./dist/thumbnailer.umd.js",
+  "module": "./dist/thumbnailer.es.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/thumbnailer.es.js",
+      "require": "./dist/thumbnailer.umd.js"
+    }
+  },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview --base test.html"
+    "build": "vite build --mode lib",
+    "build:demo": "vite build",
+    "upgrade": "npx npm-check-updates -u && npm install"
   },
   "devDependencies": {
-    "rollup": "^4.34.8",
-    "typescript": "5.7.3",
-    "vite": "6.0.9",
+    "path": "^0.12.7",
+    "typescript": "^5.7.3",
+    "vite": "^6.2.0",
+    "vite-plugin-dts": "^4.5.0",
     "vite-plugin-top-level-await": "^1.5.0",
     "vite-plugin-wasm": "^3.4.1"
   },
   "dependencies": {
-    "@privyid/ghostscript": "^0.1.0-alpha.1",
-    "wasm-vips": "^0.0.11"
-  },
-  "packageManager": "yarn@4.6.0"
+    "@privyid/ghostscript": "latest"
+  }
 }
