@@ -1,4 +1,4 @@
-import { workerLoader } from '../index';
+import { thumbnailer } from '../src/';
 
 const input = document.querySelector<HTMLInputElement>('#input');
 const preview = document.querySelector<HTMLImageElement>('#preview');
@@ -15,7 +15,7 @@ function addLog(message: string) {
 }
 
 // Initialize the thumbnailer
-workerLoader.initialize()
+thumbnailer.initialize()
   .then(() => addLog('Thumbnailer initialized successfully'))
   .catch(error => {
     console.error('Failed to initialize Thumbnailer:', error);
@@ -33,7 +33,7 @@ input?.addEventListener('change', async () => {
     const startTime = performance.now();
 
     const arrayBuffer = await file.arrayBuffer();
-    const result = await workerLoader.createThumbnail({
+    const result = await thumbnailer.createThumbnail({
       file: new Uint8Array(arrayBuffer),
       filename: file.name,
       mimeType: file.type,
