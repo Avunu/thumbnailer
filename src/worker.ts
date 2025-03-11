@@ -117,8 +117,8 @@ async function createThumbnail(
   return {
     image: new Uint8Array(buffer),
     mimeType: 'image/jpeg',
-    sourceBitmap.width,
-    sourceBitmap.height,
+    sourceWidth: sourceBitmap.width,
+    sourceHeight: sourceBitmap.height,
     width,
     height,
   }
