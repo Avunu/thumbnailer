@@ -15,11 +15,9 @@ class Thumbnailer {
    */
   public ready: Promise<void>;
 
-  constructor(workerUrl = new URL('./worker', import.meta.url).href) {
-    // Make sure we're using the absolute URL for the worker
-    this.workerUrl = workerUrl;
+  constructor(workerUrl?: string) {
+    this.workerUrl = workerUrl || new URL('./worker.js', import.meta.url).href;
     
-    // Create the ready promise
     this.ready = new Promise<void>((resolve, reject) => {
       this.readyResolve = resolve;
       this.readyReject = reject;

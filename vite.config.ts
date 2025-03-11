@@ -15,62 +15,29 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
       esbuildOptions: {
         target: "es2020",
       } as any,
-      exclude: ['@privyid/ghostscript'],
+      exclude: ['@privyid/ghostscript']
     },
     build: {
       target: 'es2020',
       modulePreload: {
         polyfill: true
-      }
-    },
-    resolve: {
-      alias: [
-        {
-          find: /^@privyid\/ghostscript\/dist\/gs\.wasm$/,
-          replacement: resolve(__dirname, 'node_modules/@privyid/ghostscript/dist/gs.wasm')
+      },
+      rollupOptions: {
+        input: {
+          main: resolve(__dirname, 'src/thumbnailer.ts'),
+          worker: resolve(__dirname, 'src/worker.ts')
         }
-      ]
-    },
-    worker: {
-      format: 'es',
-      plugins: () => [
-        wasm(),
-        topLevelAwait()
-      ]
-    },
-    server: {
-      port: 3000
+      }
     },
     plugins: [
-      wasm({
-        include: [/\.wasm$/],
-      }),
+      wasm(),
       topLevelAwait()
     ],
-    assetsInclude: ['**/*.wasm'],
-  };
-
-  // Common build configuration for handling WASM files
-  const commonBuildOptions = {
-    rollupOptions: {
-      external: [
-        '@privyid/ghostscript',
-        '@privyid/ghostscript/dist/gs.wasm'
-      ],
-      output: {
-        globals: {
-          '@privyid/ghostscript': 'GhostScript'
-        },
-        exports: "named",
-        assetFileNames: (assetInfo) => {
-          // Ensures WASM files maintain their path structure
-          if (assetInfo.name && assetInfo.name.endsWith('.wasm')) {
-            return 'assets/[name][extname]';
-          }
-          return 'assets/[name]-[hash][extname]';
-        }
-      }
-    }
+    worker: {
+      format: 'es'
+    },
+    publicDir: resolve(__dirname, 'node_modules/@privyid/ghostscript/dist'),
+    assetsInclude: ['**/*.wasm']
   };
 
   if (isWP) {
@@ -86,8 +53,7 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
         },
         outDir: 'dist',
         sourcemap: true,
-        emptyOutDir: false,
-        ...commonBuildOptions
+        emptyOutDir: true
       }
     };
   } else if (isLib) {
@@ -111,7 +77,16 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
         outDir: 'dist',
         sourcemap: true,
         emptyOutDir: true,
-        ...commonBuildOptions
+        rollupOptions: {
+          output: {
+            assetFileNames: (assetInfo) => {
+              if (assetInfo.name && assetInfo.name.endsWith('.wasm')) {
+                return 'gs.wasm';
+              }
+              return 'assets/[name]-[hash][extname]';
+            }
+          }
+        }
       }
     };
   } else {
@@ -119,10 +94,10 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
     return {
       ...commonConfig,
       root: 'src',
-      publicDir: '../public',
       build: {
         outDir: '../dist',
         sourcemap: true,
+		emptyOutDir: true,
         rollupOptions: {
           output: {
             assetFileNames: (assetInfo) => {

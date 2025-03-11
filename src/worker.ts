@@ -3,6 +3,50 @@ import type { WorkerRequest, WorkerResponse } from './types'
 
 let isInitialized = false
 
+// Handle incoming messages
+self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
+  const { type, id, payload } = event.data
+  const response: WorkerResponse = { type: 'error', id, error: 'Unknown error' }
+
+  try {
+    switch (type) {
+      case 'initialize':
+        console.log('Worker received initialize request');
+        try {
+          await initializeGhostscript()
+          isInitialized = true
+          response.type = 'initialized'
+          console.log('Worker initialization completed successfully');
+        } catch (error) {
+          console.error('Worker initialization failed:', error);
+          throw error;
+        }
+        break
+
+      case 'createThumbnail':
+        if (!isInitialized) throw new Error('Worker not initialized')
+        if (!payload) throw new Error('No payload provided')
+        
+        response.type = 'result'
+        response.payload = await createThumbnail(
+          payload.file,
+          payload.mimeType,
+          payload.maxWidth
+        )
+        break
+
+      default:
+        throw new Error(`Unknown request type: ${type}`)
+    }
+  } catch (error) {
+    response.type = 'error'
+    response.error = error instanceof Error ? error.message : String(error)
+    console.error('Worker error:', response.error);
+  }
+
+  self.postMessage(response)
+}
+
 // Signal we're alive immediately
 console.log('Worker script has started execution');
 
@@ -76,48 +120,4 @@ async function createThumbnail(
     height,
     mimeType: 'image/jpeg'
   }
-}
-
-// Handle incoming messages
-self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
-  const { type, id, payload } = event.data
-  const response: WorkerResponse = { type: 'error', id, error: 'Unknown error' }
-
-  try {
-    switch (type) {
-      case 'initialize':
-        console.log('Worker received initialize request');
-        try {
-          await initializeGhostscript()
-          isInitialized = true
-          response.type = 'initialized'
-          console.log('Worker initialization completed successfully');
-        } catch (error) {
-          console.error('Worker initialization failed:', error);
-          throw error;
-        }
-        break
-
-      case 'createThumbnail':
-        if (!isInitialized) throw new Error('Worker not initialized')
-        if (!payload) throw new Error('No payload provided')
-        
-        response.type = 'result'
-        response.payload = await createThumbnail(
-          payload.file,
-          payload.mimeType,
-          payload.maxWidth
-        )
-        break
-
-      default:
-        throw new Error(`Unknown request type: ${type}`)
-    }
-  } catch (error) {
-    response.type = 'error'
-    response.error = error instanceof Error ? error.message : String(error)
-    console.error('Worker error:', response.error);
-  }
-
-  self.postMessage(response)
 }

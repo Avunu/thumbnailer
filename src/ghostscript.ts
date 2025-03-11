@@ -12,15 +12,7 @@ export async function initializeGhostscript() {
     initPromise = new Promise(async (resolve, reject) => {
       try {
         console.log('Initializing GhostScript WASM module...');
-        const module = await initGS({
-          locateFile: (path: string) => {
-            if (path.endsWith('.wasm')) {
-              // Use the URL from the package's dist directory
-              return new URL('/node_modules/@privyid/ghostscript/dist/gs.wasm', import.meta.url).href;
-            }
-            return path;
-          }
-        });
+        const module = await initGS();
         gsModule = module;
         console.log('GhostScript initialized successfully');
         resolve(module);
