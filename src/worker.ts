@@ -1,5 +1,5 @@
 import { initializeGhostscript, renderPageAsImage } from './ghostscript'
-import type { WorkerRequest, WorkerResponse } from './types'
+import type { ThumbnailOptions, ThumbnailResult, WorkerRequest, WorkerResponse } from './types'
 
 let isInitialized = false
 
@@ -86,7 +86,7 @@ async function createThumbnail(
   data: Uint8Array, 
   mimeType: string,
   maxWidth: number,
-): Promise<{ image: Uint8Array; width: number; height: number; mimeType: string }> {
+): Promise<ThumbnailResult> {
   let sourceBitmap: ImageBitmap
 
   // Convert PostScript to JPEG if needed
@@ -116,8 +116,10 @@ async function createThumbnail(
 
   return {
     image: new Uint8Array(buffer),
+    mimeType: 'image/jpeg',
+    sourceBitmap.width,
+    sourceBitmap.height,
     width,
     height,
-    mimeType: 'image/jpeg'
   }
 }

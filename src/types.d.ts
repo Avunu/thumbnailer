@@ -11,10 +11,20 @@ export interface WorkerResponse {
   error?: string;
 }
 
+// createThumbnail options
+export interface ThumbnailOptions {
+  file: Uint8Array;
+  filename: string;
+  mimeType: string;
+  maxWidth: number;
+}
+
 // Thumbnail result type that's returned to consumers
 export interface ThumbnailResult {
   image: Uint8Array;
   mimeType: string;
+  sourceWidth: number;
+  sourceHeight: number;
   width: number;
   height: number;
 }
@@ -23,32 +33,14 @@ export interface ThumbnailResult {
 export interface ThumbnailerInterface {
   ready: Promise<void>;
   isInitialized(): boolean;
-  createThumbnail(options: {
-    file: Uint8Array;
-    filename: string;
-    mimeType: string;
-    maxWidth: number;
-  }): Promise<ThumbnailResult>;
+  createThumbnail(options: ThumbnailOptions): Promise<ThumbnailResult>;
+  isInitialized: () => boolean;
 }
 
 // Add the window interface extension
 declare global {
   interface Window {
-    thumbnailGen: {
-      ready: Promise<void>;
-      createThumbnail: (options: {
-        file: Uint8Array;
-        filename: string;
-        mimeType: string;
-        maxWidth: number;
-      }) => Promise<{
-        image: Uint8Array;
-        width: number;
-        height: number;
-        mimeType: string;
-      }>;
-      isInitialized: () => boolean;
-    };
+    thumbnailGen: ThumbnailerInterface;
   }
 }
 
