@@ -20,7 +20,14 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "declaration": true,
-    "declarationDir": "./dist"
+    "declarationDir": "./dist",
+
+    /* Path Configuration */
+    "baseUrl": ".",
+    "paths": {
+      "@src/*": ["src/*"]
+    }
   },
-  "include": ["src"]
+  "include": ["src", "demo"],
+  "exclude": ["*.wasm"]
 }

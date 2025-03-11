@@ -3,103 +3,112 @@ import { resolve } from 'path';
 import dts from 'vite-plugin-dts';
 import wasm from "vite-plugin-wasm";
 import topLevelAwait from "vite-plugin-top-level-await";
+import type { ConfigEnv, UserConfig } from 'vite';
 
-export default defineConfig(({ command, mode }) => {
+export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
   const isLib = mode === 'lib';
   const isWP = mode === 'wp';
   
-  // Base configuration for the library
-  const libConfig = {
-    build: {
-      lib: {
-        entry: resolve('src/index.ts'),
-        name: 'thumbnailer',
-        fileName: (format) => `thumbnailer.${format}.js`,
-        formats: ['es', 'umd']
-      },
-      rollupOptions: {
-        external: ['@privyid/ghostscript'],
-        output: {
-          globals: {
-            '@privyid/ghostscript': 'GhostScript'
-          }
-        }
-      },
-      outDir: 'dist',
-      sourcemap: true
-    },
-    plugins: [
-      wasm(),
-      topLevelAwait(),
-      dts({
-        insertTypesEntry: true,
-        include: ['src/**/*.ts'],
-        exclude: ['src/demo/**/*', 'src/test.ts', 'src/thumbnailer.ts']
-      })
-    ]
-  };
-  
-  // WordPress plugin configuration
-  const wpConfig = {
-    build: {
-      lib: {
-        entry: resolve('src/thumbnailer.ts'),
-        name: 'thumbnailer',
-        fileName: () => 'thumbnailer.js',
-        formats: ['umd']
-      },
-      rollupOptions: {
-        external: ['@privyid/ghostscript'],
-        output: {
-          globals: {
-            '@privyid/ghostscript': 'GhostScript'
-          }
-        }
-      },
-      outDir: 'dist',
-      sourcemap: true
-    },
-    plugins: [
-      wasm(),
-      topLevelAwait()
-    ]
-  };
-  
-  // Demo configuration
-  const demoConfig = {
-    build: {
-      target: 'esnext',
-      outDir: 'dist-demo',
-      sourcemap: true
-    },
-    plugins: [
-      wasm(),
-      topLevelAwait()
-    ]
-  };
-  
   // Common configuration options
-  const commonConfig = {
+  const commonConfig: UserConfig = {
     optimizeDeps: {
       esbuildOptions: {
-        target: "esnext",
+        target: "es2020",
       } as any,
-      exclude: ['@privyid/ghostscript'],
+      exclude: ['@privyid/ghostscript']
     },
+    build: {
+      target: 'es2020',
+      modulePreload: {
+        polyfill: true
+      },
+      rollupOptions: {
+        input: {
+          main: resolve(__dirname, 'src/thumbnailer.ts'),
+          worker: resolve(__dirname, 'src/worker.ts')
+        }
+      }
+    },
+    plugins: [
+      wasm(),
+      topLevelAwait()
+    ],
     worker: {
       format: 'es'
     },
-    server: {
-      port: 3000
-    }
+    publicDir: resolve(__dirname, 'node_modules/@privyid/ghostscript/dist'),
+    assetsInclude: ['**/*.wasm']
   };
-  
-  // Return the appropriate configuration
+
   if (isWP) {
-    return { ...wpConfig, ...commonConfig };
+    // WordPress plugin configuration
+    return {
+      ...commonConfig,
+      build: {
+        lib: {
+          entry: resolve(__dirname, 'src/thumbnailer.ts'),
+          name: 'thumbnailer',
+          formats: ['umd'],
+          fileName: () => 'thumbnailer.js'
+        },
+        outDir: 'dist',
+        sourcemap: true,
+        emptyOutDir: true
+      }
+    };
   } else if (isLib) {
-    return { ...libConfig, ...commonConfig };
+    // Base library configuration
+    return {
+      ...commonConfig,
+      plugins: [
+        ...commonConfig.plugins || [],
+        dts({
+          insertTypesEntry: true,
+          include: ['src/*.ts']
+        })
+      ],
+      build: {
+        lib: {
+          entry: resolve(__dirname, 'src/thumbnailer.ts'),
+          name: 'thumbnailer',
+          formats: ['es', 'umd'],
+          fileName: (format) => `thumbnailer.${format}.js`
+        },
+        outDir: 'dist',
+        sourcemap: true,
+        emptyOutDir: true,
+        rollupOptions: {
+          output: {
+            assetFileNames: (assetInfo) => {
+              if (assetInfo.name && assetInfo.name.endsWith('.wasm')) {
+                return 'gs.wasm';
+              }
+              return 'assets/[name]-[hash][extname]';
+            }
+          }
+        }
+      }
+    };
   } else {
-    return { ...demoConfig, ...commonConfig };
+    // Demo configuration
+    return {
+      ...commonConfig,
+      root: 'src',
+      build: {
+        outDir: '../dist',
+        sourcemap: true,
+		emptyOutDir: true,
+        rollupOptions: {
+          output: {
+            assetFileNames: (assetInfo) => {
+              if (assetInfo.name && assetInfo.name.endsWith('.wasm')) {
+                return 'assets/[name][extname]';
+              }
+              return 'assets/[name]-[hash][extname]';
+            }
+          }
+        }
+      }
+    };
   }
 });
