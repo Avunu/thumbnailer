@@ -106,7 +106,7 @@ class Thumbnailer
 
     public function display_settings_page()
     {
-    ?>
+?>
         <div class="wrap">
             <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
             <form action="options.php" method="post">
@@ -117,7 +117,7 @@ class Thumbnailer
                 ?>
             </form>
         </div>
-    <?php
+<?php
     }
 
     public function enqueue_scripts()
@@ -135,7 +135,7 @@ class Thumbnailer
             // Check if current post is in the list
             if (in_array($post->ID, $post_ids)) {
                 // Enqueue the thumbnailer script
-                wp_enqueue_script(
+                wp_enqueue_script_module(
                     'thumbnailer',
                     THUMBNAILER_PLUGIN_URL . 'dist/thumbnailer.js',
                     array(),
