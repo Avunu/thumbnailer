@@ -17,8 +17,22 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
       } as any,
       exclude: ['@privyid/ghostscript'],
     },
+    build: {
+      target: 'es2020',
+      modulePreload: {
+        polyfill: true
+      }
+    },
+    resolve: {
+      alias: [
+        {
+          find: /^@privyid\/ghostscript\/dist\/gs\.wasm$/,
+          replacement: resolve(__dirname, 'node_modules/@privyid/ghostscript/dist/gs.wasm')
+        }
+      ]
+    },
     worker: {
-      format: 'es' as const,
+      format: 'es',
       plugins: () => [
         wasm(),
         topLevelAwait()
@@ -28,9 +42,35 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
       port: 3000
     },
     plugins: [
-      wasm(),
+      wasm({
+        include: [/\.wasm$/],
+      }),
       topLevelAwait()
-    ]
+    ],
+    assetsInclude: ['**/*.wasm'],
+  };
+
+  // Common build configuration for handling WASM files
+  const commonBuildOptions = {
+    rollupOptions: {
+      external: [
+        '@privyid/ghostscript',
+        '@privyid/ghostscript/dist/gs.wasm'
+      ],
+      output: {
+        globals: {
+          '@privyid/ghostscript': 'GhostScript'
+        },
+        exports: "named",
+        assetFileNames: (assetInfo) => {
+          // Ensures WASM files maintain their path structure
+          if (assetInfo.name && assetInfo.name.endsWith('.wasm')) {
+            return 'assets/[name][extname]';
+          }
+          return 'assets/[name]-[hash][extname]';
+        }
+      }
+    }
   };
 
   if (isWP) {
@@ -39,7 +79,7 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
       ...commonConfig,
       build: {
         lib: {
-          entry: resolve(__dirname, 'src/index.ts'),
+          entry: resolve(__dirname, 'src/thumbnailer.ts'),
           name: 'thumbnailer',
           formats: ['umd'],
           fileName: () => 'thumbnailer.js'
@@ -47,14 +87,7 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
         outDir: 'dist',
         sourcemap: true,
         emptyOutDir: false,
-        rollupOptions: {
-          external: ['@privyid/ghostscript'],
-          output: {
-            globals: {
-              '@privyid/ghostscript': 'GhostScript'
-            }
-          }
-        }
+        ...commonBuildOptions
       }
     };
   } else if (isLib) {
@@ -70,7 +103,7 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
       ],
       build: {
         lib: {
-          entry: resolve(__dirname, 'src/index.ts'),
+          entry: resolve(__dirname, 'src/thumbnailer.ts'),
           name: 'thumbnailer',
           formats: ['es', 'umd'],
           fileName: (format) => `thumbnailer.${format}.js`
@@ -78,24 +111,28 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
         outDir: 'dist',
         sourcemap: true,
         emptyOutDir: true,
-        rollupOptions: {
-          external: ['@privyid/ghostscript'],
-          output: {
-            globals: {
-              '@privyid/ghostscript': 'GhostScript'
-            }
-          }
-        }
+        ...commonBuildOptions
       }
     };
   } else {
     // Demo configuration
     return {
       ...commonConfig,
-      root: 'demo',
+      root: 'src',
+      publicDir: '../public',
       build: {
-        outDir: '../dist-demo',
-        sourcemap: true
+        outDir: '../dist',
+        sourcemap: true,
+        rollupOptions: {
+          output: {
+            assetFileNames: (assetInfo) => {
+              if (assetInfo.name && assetInfo.name.endsWith('.wasm')) {
+                return 'assets/[name][extname]';
+              }
+              return 'assets/[name]-[hash][extname]';
+            }
+          }
+        }
       }
     };
   }

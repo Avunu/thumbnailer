@@ -3,6 +3,12 @@ import type { WorkerRequest, WorkerResponse } from './types'
 
 let isInitialized = false
 
+// Signal we're alive immediately
+console.log('Worker script has started execution');
+
+// Inform the main thread that the worker has started (not fully initialized yet)
+self.postMessage({ type: 'initialized', id: 'worker', payload: null });
+
 function isPostScriptType(mimeType: string): boolean {
   const psTypes = [
     'application/postscript',
@@ -80,16 +86,23 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
   try {
     switch (type) {
       case 'initialize':
-        await initializeGhostscript()
-        isInitialized = true
-        response.type = 'initialized'
+        console.log('Worker received initialize request');
+        try {
+          await initializeGhostscript()
+          isInitialized = true
+          response.type = 'initialized'
+          console.log('Worker initialization completed successfully');
+        } catch (error) {
+          console.error('Worker initialization failed:', error);
+          throw error;
+        }
         break
 
       case 'createThumbnail':
         if (!isInitialized) throw new Error('Worker not initialized')
         if (!payload) throw new Error('No payload provided')
         
-        response.type = 'thumbnail'
+        response.type = 'result'
         response.payload = await createThumbnail(
           payload.file,
           payload.mimeType,
@@ -103,10 +116,8 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
   } catch (error) {
     response.type = 'error'
     response.error = error instanceof Error ? error.message : String(error)
+    console.error('Worker error:', response.error);
   }
 
   self.postMessage(response)
 }
-
-// Notify that we're ready
-self.postMessage({ type: 'initialized', id: 'worker', payload: null })

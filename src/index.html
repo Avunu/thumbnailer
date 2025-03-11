@@ -29,10 +29,14 @@
       border: 1px solid #ddd;
     }
   </style>
+  <!-- Load the thumbnailer library first -->
+  <script type="module" src="thumbnailer.ts"></script>
 </head>
 
 <body>
   <h1>Thumbnailer Library Demo</h1>
+  <p>This demo shows how the thumbnailer works when loaded as a global object, similar to WordPress integration.</p>
+  
   <div id="app">
     <input type="file" name="input" id="input"
       accept="application/pdf,application/postscript,application/ps,application/x-eps,application/x-postscript,application/x-postscript-not-eps,application/x-ps,image/eps,image/x-eps,text/postscript,image/jpeg,image/jpg,image/png,image/gif,image/webp,image/bmp,image/tiff">
@@ -40,6 +44,8 @@
     <div id="log"></div>
     <img id="preview" alt="Preview" style="width: 500px; height: auto;">
   </div>
+  
+  <!-- Load the demo script after the library -->
   <script type="module" src="./demo.ts"></script>
 </body>
 

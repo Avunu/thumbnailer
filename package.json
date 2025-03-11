@@ -17,19 +17,19 @@
     }
   },
   "scripts": {
-    "dev": "vite serve demo",
-    "build": "vite build --mode lib --config vite.config.ts",
+    "dev": "vite serve",
+    "build": "vite build --mode lib",
     "build:demo": "vite build",
-    "build:wp": "vite build --mode wp --config vite.config.ts",
+    "build:wp": "vite build --mode wp",
     "build:all": "npm run build && npm run build:wp",
     "zip": "npm run build:all && mkdir -p releases && zip -r releases/thumbnailer.zip dist thumbnailer.php css readme.txt",
     "upgrade": "npx npm-check-updates -u && npm install"
   },
   "devDependencies": {
     "path": "^0.12.7",
-    "typescript": "^5.7.3",
-    "vite": "^6.2.0",
-    "vite-plugin-dts": "^4.5.0",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.1",
+    "vite-plugin-dts": "^4.5.3",
     "vite-plugin-top-level-await": "^1.5.0",
     "vite-plugin-wasm": "^3.4.1"
   },
