@@ -34,7 +34,6 @@ export interface ThumbnailerInterface {
   ready: Promise<void>;
   isInitialized(): boolean;
   createThumbnail(options: ThumbnailOptions): Promise<ThumbnailResult>;
-  isInitialized: () => boolean;
 }
 
 // Add the window interface extension
