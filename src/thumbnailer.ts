@@ -6,17 +6,9 @@ class Thumbnailer {
   private pendingRequests = new Map<string, (response: WorkerResponse) => void>();
   private initialized: boolean = false;
   private workerUrl: string;
-  private readyResolve!: (value: void | PromiseLike<void>) => void;
-  private readyReject!: (reason?: any) => void;
-
-  /**
-   * Public promise that resolves when the thumbnailer is fully initialized
-   * and ready to process files
-   */
-  public ready: Promise<void>;
+  private readyPromise: Promise<void>;
 
   constructor(workerUrl?: string) {
-    // Get the current script's URL and use it to find the worker
     const scriptUrl = document.currentScript instanceof HTMLScriptElement
       ? document.currentScript.src
       : undefined;
@@ -25,41 +17,23 @@ class Thumbnailer {
       ? scriptUrl.replace('thumbnailer.js', 'worker.js')
       : new URL('./worker.js', import.meta.url).href);
 
-    this.ready = new Promise<void>((resolve, reject) => {
-      this.readyResolve = resolve;
-      this.readyReject = reject;
+    // Initialize the ready promise immediately with worker load
+    this.readyPromise = this.load().then(() => {
+      this.initialized = true;
     });
 
-    // Add thumbnailer to window if in browser context
     if (typeof window !== 'undefined') {
-      // Define a property for use with the demo/test page
       Object.defineProperty(window, 'thumbnailGen', {
-        get: () => {
-          return this;
-        },
+        get: () => this,
         configurable: false
       });
     }
-
-    // Start initialization immediately but with a slight delay to ensure DOM is ready
-    setTimeout(() => {
-      this.initialize().catch(error => {
-        console.error('Failed to initialize thumbnailer:', error);
-        this.readyReject(error);
-      });
-    }, 0);
   }
 
-  /**
-   * Generates a unique request ID
-   */
   private generateRequestId(): string {
     return Math.random().toString(36).slice(2);
   }
 
-  /**
-   * Creates and initializes the worker
-   */
   public load(): Promise<Worker> {
     if (this.workerInstance) {
       return Promise.resolve(this.workerInstance);
@@ -68,7 +42,6 @@ class Thumbnailer {
     if (!this.initializationPromise) {
       this.initializationPromise = new Promise((resolve, reject) => {
         try {
-          // Create worker using direct URL object to avoid import issues
           const worker = new Worker(this.workerUrl, { type: 'module' });
 
           worker.onerror = (err) => {
@@ -79,16 +52,16 @@ class Thumbnailer {
           worker.onmessage = (event) => {
             const response = event.data as WorkerResponse;
 
-            if (response.type === 'ready' && response.id === 'worker') {
+            if (response.type === 'ready') {
               this.workerInstance = worker;
+              this.initialized = true;
               resolve(worker);
               return;
             }
 
-            const { id } = response;
-            const resolver = this.pendingRequests.get(id);
+            const resolver = this.pendingRequests.get(response.id);
             if (resolver) {
-              this.pendingRequests.delete(id);
+              this.pendingRequests.delete(response.id);
               resolver(response);
             }
           };
@@ -102,9 +75,6 @@ class Thumbnailer {
     return this.initializationPromise;
   }
 
-  /**
-   * Sends a request to the worker and waits for response
-   */
   private async sendWorkerRequest(request: Omit<WorkerRequest, 'id'>): Promise<WorkerResponse> {
     const worker = await this.load();
     const id = this.generateRequestId();
@@ -115,43 +85,10 @@ class Thumbnailer {
     });
   }
 
-  /**
-   * Initialize the worker - now private as it's called automatically
-   */
-  private async initialize(): Promise<void> {
-    try {
-      // First load the worker
-      await this.load();
-
-      // Then send the initialize request
-      const response = await this.sendWorkerRequest({ type: 'initialize' });
-
-      if (response.type === 'error') {
-        throw new Error(`Failed to initialize: ${response.error}`);
-      }
-
-      this.initialized = true;
-
-      // Resolve the ready promise
-      this.readyResolve();
-    } catch (error) {
-      console.error('Failed to initialize thumbnailer:', error);
-      this.readyReject(error);
-      throw error;
-    }
-  }
-
-  /**
-   * Check if the thumbnailer is initialized
-   */
   public isInitialized(): boolean {
     return this.initialized;
   }
 
-  /**
-   * Create a thumbnail from the provided file data
-   * If thumbnailer isn't ready, it will wait for initialization to complete
-   */
   public async createThumbnail(
     options: {
       file: Uint8Array;
@@ -160,10 +97,8 @@ class Thumbnailer {
       maxWidth: number;
     }
   ) {
-    // If not initialized, wait for it
-    if (!this.initialized) {
-      await this.ready;
-    }
+    // Wait for worker to be ready
+    await this.readyPromise;
 
     const response = await this.sendWorkerRequest({
       type: 'createThumbnail',

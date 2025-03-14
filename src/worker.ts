@@ -1,10 +1,18 @@
 import { initializeGhostscript, renderPageAsImage } from './ghostscript'
 import type { ThumbnailResult, WorkerRequest, WorkerResponse } from './types'
 
-let isInitialized = false
-
-// Send a message that the worker has loaded but is not yet initialized
-self.postMessage({ type: 'ready', id: 'worker' });
+// Initialize immediately
+initializeGhostscript().then(() => {
+  // Send ready message only after initialization is complete
+  self.postMessage({ type: 'ready', id: 'worker' });
+}).catch(error => {
+  console.error('Failed to initialize ghostscript:', error);
+  self.postMessage({ 
+    type: 'error', 
+    id: 'worker', 
+    error: 'Failed to initialize worker: ' + error.message 
+  });
+});
 
 // Handle incoming messages
 self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
@@ -13,23 +21,8 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 
   try {
     switch (type) {
-      case 'initialize':
-        console.log('Worker received initialize request');
-        try {
-          await initializeGhostscript()
-          isInitialized = true
-          response.type = 'initialized'
-          console.log('Worker initialization completed successfully');
-        } catch (error) {
-          console.error('Worker initialization failed:', error);
-          throw error;
-        }
-        break
-
       case 'createThumbnail':
-        if (!isInitialized) throw new Error('Worker not initialized')
         if (!payload) throw new Error('No payload provided')
-
         response.type = 'result'
         response.payload = await createThumbnail(
           payload.file,
