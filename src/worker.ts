@@ -1,5 +1,5 @@
 import { initializeGhostscript, renderPageAsImage } from './ghostscript'
-import type { ThumbnailOptions, ThumbnailResult, WorkerRequest, WorkerResponse } from './types'
+import type { ThumbnailResult, WorkerRequest, WorkerResponse } from './types'
 
 let isInitialized = false
 
