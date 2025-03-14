@@ -79,7 +79,7 @@ class Thumbnailer {
           worker.onmessage = (event) => {
             const response = event.data as WorkerResponse;
 
-            if (response.type === 'initialized' && response.id === 'worker') {
+            if (response.type === 'ready' && response.id === 'worker') {
               this.workerInstance = worker;
               resolve(worker);
               return;

@@ -6,7 +6,7 @@ export interface WorkerRequest {
 
 export interface WorkerResponse {
   id: string;
-  type: 'initialized' | 'result' | 'error';
+  type: 'ready' | 'initialized' | 'result' | 'error';
   payload?: any;
   error?: string;
 }

@@ -3,6 +3,9 @@ import type { ThumbnailResult, WorkerRequest, WorkerResponse } from './types'
 
 let isInitialized = false
 
+// Send a message that the worker has loaded but is not yet initialized
+self.postMessage({ type: 'ready', id: 'worker' });
+
 // Handle incoming messages
 self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
   const { type, id, payload } = event.data
