@@ -28,6 +28,11 @@ class Thumbnailer {
         configurable: false
       });
     }
+
+    // initialize
+    this.load().then(() => {
+      console.log('Thumbnailer initialized');
+    });
   }
 
   private generateRequestId(): string {
@@ -76,6 +81,7 @@ class Thumbnailer {
   }
 
   private async sendWorkerRequest(request: Omit<WorkerRequest, 'id'>): Promise<WorkerResponse> {
+    console.log('Sending worker request:', request);
     const worker = await this.load();
     const id = this.generateRequestId();
 
@@ -118,6 +124,3 @@ export const thumbnailer = new Thumbnailer();
 
 // Export the class for custom instantiation
 export default Thumbnailer;
-
-// Export types
-export type { WorkerRequest, WorkerResponse };

@@ -132,14 +132,17 @@ class Thumbnailer
                 $post_ids = array_map('intval', explode(',', $this->options['post_ids']));
             }
 
+            $script_path = THUMBNAILER_PLUGIN_URL . 'dist/thumbnailer.js';
+            $script_version = filemtime(THUMBNAILER_PLUGIN_DIR . 'dist/thumbnailer.js');
+
             // Check if current post is in the list
             if (in_array($post->ID, $post_ids)) {
                 // Enqueue the thumbnailer script
                 wp_enqueue_script_module(
                     'thumbnailer',
-                    THUMBNAILER_PLUGIN_URL . 'dist/thumbnailer.js',
+                    $script_path,
                     array(),
-                    THUMBNAILER_VERSION,
+                    $script_version,
                     true
                 );
             }
