@@ -1,0 +1,5 @@
+[submodule "vendor/utif"]
+	path = vendor/utif
+	url = https://github.com/photopea/UTIF.js.git
+	branch = master
+	shallow = true
