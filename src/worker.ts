@@ -1,6 +1,6 @@
 import { initializeGhostscript, renderPageAsImage } from './ghostscript'
 import type { ThumbnailResult, WorkerRequest, WorkerResponse } from './types'
-import UTIF from '../vendor/utif/UTIF.js'  // Add this import
+import UTIF from '../vendor/utif/UTIF.js'
 
 // Initialize immediately
 initializeGhostscript().then(() => {
@@ -8,10 +8,10 @@ initializeGhostscript().then(() => {
   self.postMessage({ type: 'ready', id: 'worker' });
 }).catch(error => {
   console.error('Failed to initialize ghostscript:', error);
-  self.postMessage({ 
-    type: 'error', 
-    id: 'worker', 
-    error: 'Failed to initialize worker: ' + error.message 
+  self.postMessage({
+    type: 'error',
+    id: 'worker',
+    error: 'Failed to initialize worker: ' + error.message
   });
 });
 
@@ -76,28 +76,59 @@ function isTiffType(mimeType: string): boolean {
 }
 
 async function convertTiffToJpeg(data: Uint8Array): Promise<Uint8Array> {
-  // Decode TIFF file
-  const ifds = UTIF.decode(data.buffer)
-  UTIF.decodeImage(data.buffer, ifds[0])
-  
-  // Convert to RGBA
-  const rgba = UTIF.toRGBA8(ifds[0])
-  
-  // Create canvas and draw RGBA data
-  const width = ifds[0].width as number
-  const height = ifds[0].height as number
-  const canvas = new OffscreenCanvas(width, height)
-  const ctx = canvas.getContext('2d')!
-  
-  // Put image data
-  const imageData = new ImageData(new Uint8ClampedArray(rgba.buffer), width, height)
-  ctx.putImageData(imageData, 0, 0)
-  
-  // Convert to JPEG blob
-  const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.9 })
-  const jpegData = new Uint8Array(await blob.arrayBuffer())
-  
-  return jpegData
+  try {
+    // Decode TIFF file
+    const ifds = UTIF.decode(data.buffer);
+    if (!ifds || ifds.length === 0) {
+      throw new Error('Failed to decode TIFF: No image data found');
+    }
+
+    // Try to decode the image and catch any errors
+    try {
+      UTIF.decodeImage(data.buffer, ifds[0]);
+    } catch (err) {
+      console.error('Error decoding TIFF image:', err);
+      throw new Error('Failed to decode TIFF image data');
+    }
+
+    // Check if image data was actually decoded
+    if (!ifds[0].data) {
+      throw new Error('No pixel data found in TIFF');
+    }
+
+    // Convert to RGBA
+    const rgba = UTIF.toRGBA8(ifds[0]);
+    if (!rgba || rgba.length === 0) {
+      throw new Error('Failed to convert TIFF to RGBA format');
+    }
+
+    // Create canvas and draw RGBA data
+    const width = ifds[0].width as number;
+    const height = ifds[0].height as number;
+
+    if (!width || !height || width <= 0 || height <= 0) {
+      throw new Error(`Invalid TIFF dimensions: ${width}x${height}`);
+    }
+
+    const canvas = new OffscreenCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      throw new Error('Could not create canvas context for TIFF conversion');
+    }
+
+    // Put image data
+    const imageData = new ImageData(new Uint8ClampedArray(rgba.buffer), width, height);
+    ctx.putImageData(imageData, 0, 0);
+
+    // Convert to JPEG blob
+    const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.9 });
+    const jpegData = new Uint8Array(await blob.arrayBuffer());
+
+    return jpegData;
+  } catch (error) {
+    console.error('TIFF conversion error:', error);
+    throw new Error(`Failed to convert TIFF: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }
 
 async function createImageFromData(data: Uint8Array, mimeType: string): Promise<ImageBitmap> {

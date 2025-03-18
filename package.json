@@ -19,9 +19,6 @@
   "scripts": {
     "dev": "rollup -c -w",
     "build": "rollup -c",
-    "build:lib": "rollup -c --environment BUILD:lib",
-    "build:demo": "rollup -c --environment BUILD:demo",
-    "build:all": "npm run build && npm run build:demo",
     "zip": "npm run build:all && mkdir -p releases && zip -r releases/thumbnailer.zip dist thumbnailer.php css readme.txt",
     "upgrade": "npx npm-check-updates -u && npm install"
   },
