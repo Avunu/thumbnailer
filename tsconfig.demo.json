@@ -1,0 +1,13 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"outDir": "demo",
+		"declaration": false,
+		"declarationDir": "./demo",
+		"declarationMap": false
+	},
+	"include": [
+		"demo/**/*",
+		"src/types.ts"
+	]
+}

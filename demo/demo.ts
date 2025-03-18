@@ -22,20 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
   addLog('Waiting for thumbnailer to initialize...');
   
   const checkInterval = setInterval(() => {
-    if (typeof window.thumbnailGen !== 'undefined') {
+    if (typeof window.thumbnailGen !== 'undefined' && window.thumbnailGen.isInitialized()) {
       clearInterval(checkInterval);
-      
-      addLog('Thumbnailer object found in global scope');
-      
-      window.thumbnailGen.ready
-        .then(() => {
-          addLog('Thumbnailer is ready to use');
-          if (input) input.disabled = false;
-        })
-        .catch((error: any) => {
-          console.error('Thumbnailer initialization failed:', error);
-          addLog(`Initialization error: ${error instanceof Error ? error.message : String(error)}`);
-        });
+      addLog('Thumbnailer is ready to use');
+      if (input) input.disabled = false;
     }
   }, 100);
 });

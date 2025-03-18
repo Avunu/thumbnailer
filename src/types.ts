@@ -1,6 +1,5 @@
 import { initializeGhostscript, renderPageAsImage } from './ghostscript'
 import type { ThumbnailResult, WorkerRequest, WorkerResponse } from './types'
-import UTIF from '../vendor/utif/UTIF.js'  // Add this import
 
 // Initialize immediately
 initializeGhostscript().then(() => {
@@ -61,18 +60,7 @@ function isPostScriptType(mimeType: string): boolean {
 }
 
 function isTiffType(mimeType: string): boolean {
-  const tiffTypes = [
-    'application/tif',
-    'application/tiff',
-    'application/x-tif',
-    'application/x-tiff',
-    'image/tif',
-    'image/tiff',
-    'image/tiff-fx',
-    'image/x-tif',
-    'image/x-tiff',
-  ]
-  return tiffTypes.includes(mimeType)
+  return mimeType === 'image/tiff'
 }
 
 async function convertTiffToJpeg(data: Uint8Array): Promise<Uint8Array> {
@@ -156,5 +144,11 @@ async function createThumbnail(
     sourceHeight: sourceBitmap.height,
     width,
     height,
+  }
+}
+
+declare global {
+  interface Window {
+    thumbnailGen: import('./thumbnailer').default;
   }
 }

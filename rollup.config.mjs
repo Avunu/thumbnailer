@@ -31,7 +31,7 @@ export default [
     external: ['@privyid/ghostscript'],
     plugins: [
       typescript(),
-      resolve(),
+      resolve({ browser: true, extensions: ['.js', '.ts', '.tsx', '.wasm'] }),
       commonjs(),
       wasm({
         targetEnv: 'auto'
@@ -44,20 +44,36 @@ export default [
     output: {
       file: 'dist/worker.js',
       format: 'es',
-      sourcemap: true
+      sourcemap: true,
     },
     plugins: [
       typescript(),
-      resolve(),
+      resolve({ browser: true, extensions: ['.js', '.ts', '.tsx', '.wasm'] }),
       commonjs(),
       wasm({
         targetEnv: 'auto'
       }),
       copy({
         targets: [
-          { src: wasmSource, dest: 'dist' }
+          { src: wasmSource, dest: 'dist' },
         ]
       })
+    ]
+  },
+  {
+    // Demo application
+    input: 'demo/demo.ts',
+    output: {
+      file: 'demo/demo.js',
+      format: 'iife',
+      sourcemap: true
+    },
+    plugins: [
+      typescript({
+        tsconfig: './tsconfig.demo.json'
+      }),
+      resolve({ browser: true }),
+      commonjs()
     ]
   }
 ];
