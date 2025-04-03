@@ -12,6 +12,17 @@ This plugin loads the Thumbnailer JavaScript library on specific WordPress posts
 - Easy configuration through WordPress admin interface
 - Makes the AGPL worker available for client-side thumbnail generation
 - Non-blocking thumbnail processing via Web Workers
+- Support for PDF, PostScript, TIFF and standard image formats
+
+## Browser Compatibility
+
+Thumbnailer requires a browser that supports the `OffscreenCanvas` API. This includes:
+- Chrome 69+
+- Edge 79+
+- Firefox 46+
+- Opera 56+
+
+Safari has limited support as of recent versions. The library will detect compatibility and fail gracefully if not supported.
 
 ## WordPress Plugin Usage
 
@@ -25,14 +36,11 @@ This plugin loads the Thumbnailer JavaScript library on specific WordPress posts
 Once the Thumbnailer script is loaded on a page, you can use it in your JavaScript as follows:
 
 ```javascript
-// Check if thumbnailer is available
-if (window.workerLoader) {
-  // Initialize the worker
-  await window.workerLoader.initialize();
-
+// First check if the browser is supported
+if (window.thumbnailGen && window.thumbnailGen.isSupported()) {
   // Create a thumbnail
   const fileData = new Uint8Array(await fetch('example.pdf').then(r => r.arrayBuffer()));
-  const thumbnail = await window.workerLoader.createThumbnail({
+  const thumbnail = await window.thumbnailGen.createThumbnail({
     file: fileData,
     filename: 'example.pdf',
     mimeType: 'application/pdf',
@@ -43,6 +51,9 @@ if (window.workerLoader) {
   const blob = new Blob([thumbnail.image], { type: thumbnail.mimeType });
   const imageUrl = URL.createObjectURL(blob);
   document.getElementById('preview').src = imageUrl;
+} else {
+  console.warn('Thumbnailer is not supported in this browser');
+  // Provide a fallback here if needed
 }
 ```
 
@@ -74,6 +85,12 @@ Returns: `Promise<ThumbnailResult>` where `ThumbnailResult` is:
   height: number;    // Thumbnail height
 }
 ```
+
+#### `thumbnailGen.isSupported()`
+
+Checks if the current browser supports the required features for Thumbnailer.
+
+Returns: `boolean`
 
 ## Development
 

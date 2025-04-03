@@ -31,7 +31,10 @@ export default [
     external: ['@privyid/ghostscript'],
     plugins: [
       typescript(),
-      resolve({ browser: true, extensions: ['.js', '.ts', '.tsx', '.wasm'] }),
+      resolve({ 
+        browser: true, 
+        extensions: ['.js', '.ts', '.tsx', '.wasm']
+      }),
       commonjs(),
       wasm({
         targetEnv: 'auto'
