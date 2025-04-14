@@ -52,6 +52,11 @@ input?.addEventListener('change', async () => {
     preview.src = URL.createObjectURL(blob);
     
     addLog(`Generated thumbnail: ${result.width}x${result.height} (${result.mimeType})`);
+    // debug
+    console.log('Thumbnail Result:', result);
+    if (result.xResolution || result.yResolution) {
+      addLog(`Resolution: X: ${result.xResolution}, Y: ${result.yResolution}`);
+    }
 
     const endTime = performance.now();
     updateTimer(Math.round(endTime - startTime));

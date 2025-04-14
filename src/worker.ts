@@ -1,6 +1,7 @@
 import { initializeGhostscript, renderPageAsImage } from './ghostscript'
-import type { ThumbnailResult, WorkerRequest, WorkerResponse } from './types'
+import type { ResolutionUnit, ThumbnailResult, WorkerRequest, WorkerResponse } from './types'
 import UTIF from '../vendor/utif/UTIF.js'
+import ExifReader from 'exifreader';
 
 // Initialize immediately
 initializeGhostscript().then(() => {
@@ -75,7 +76,38 @@ function isTiffType(mimeType: string): boolean {
   return tiffTypes.includes(mimeType)
 }
 
-async function convertTiffToJpeg(data: Uint8Array): Promise<Uint8Array> {
+async function extractMetadata(data: Uint8Array, mimeType: string): Promise<{ xResolution?: number, yResolution?: number, resolutionUnit?: ResolutionUnit }> {
+  const metadata: { xResolution?: number, yResolution?: number, resolutionUnit?: ResolutionUnit } = {};
+  
+  try {
+    // Load tags with ExifReader
+    const tags = await ExifReader.load(data.buffer, {async: true});
+    
+    if (tags) {
+      // Extract resolution info from tags
+      if (tags['XResolution']?.value) {
+        const value = tags['XResolution'].value;
+        metadata.xResolution = Array.isArray(value) ? value[0] / value[1] : value;
+      }
+      
+      if (tags['YResolution']?.value) {
+        const value = tags['YResolution'].value;
+        metadata.yResolution = Array.isArray(value) ? value[0] / value[1] : value;
+      }
+      
+      if (tags['ResolutionUnit']?.value) {
+        const unit = tags['ResolutionUnit'].value;
+        metadata.resolutionUnit = unit === 2 ? 'inch' : unit === 3 ? 'cm' : 'none';
+      }
+    }
+  } catch (error) {
+    console.warn(`Failed to extract metadata for ${mimeType}:`, error);
+  }
+  
+  return metadata;
+}
+
+async function convertTiffToJpeg(data: Uint8Array): Promise<{ jpegData: Uint8Array, metadata: { xResolution?: number, yResolution?: number, resolutionUnit?: string } }> {
   try {
     // Decode TIFF file
     const ifds = UTIF.decode(data.buffer);
@@ -83,6 +115,9 @@ async function convertTiffToJpeg(data: Uint8Array): Promise<Uint8Array> {
       throw new Error('Failed to decode TIFF: No image data found');
     }
 
+    // Extract resolution metadata
+    const metadata = await extractMetadata(data, 'image/tiff');
+    
     // Try to decode the image and catch any errors
     try {
       UTIF.decodeImage(data.buffer, ifds[0]);
@@ -124,7 +159,7 @@ async function convertTiffToJpeg(data: Uint8Array): Promise<Uint8Array> {
     const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.9 });
     const jpegData = new Uint8Array(await blob.arrayBuffer());
 
-    return jpegData;
+    return { jpegData, metadata };
   } catch (error) {
     console.error('TIFF conversion error:', error);
     throw new Error(`Failed to convert TIFF: ${error instanceof Error ? error.message : String(error)}`);
@@ -149,19 +184,24 @@ async function createThumbnail(
   mimeType: string,
   maxWidth: number,
 ): Promise<ThumbnailResult> {
-  let sourceBitmap: ImageBitmap
+  let sourceBitmap: ImageBitmap;
+  let metadata = await extractMetadata(data, mimeType);
 
   // Convert TIFF/PostScript to JPEG if needed
   if (isPostScriptType(mimeType)) {
-    const jpegData = await renderPageAsImage(data)
-    sourceBitmap = await createImageFromData(jpegData, 'image/jpeg')
-    mimeType = 'image/jpeg'
+    const jpegData = await renderPageAsImage(data);
+    sourceBitmap = await createImageFromData(jpegData, 'image/jpeg');
+    metadata = await extractMetadata(jpegData, 'image/jpeg');
+    mimeType = 'image/jpeg';
   } else if (isTiffType(mimeType)) {
-    const jpegData = await convertTiffToJpeg(data)
-    sourceBitmap = await createImageFromData(jpegData, 'image/jpeg')
-    mimeType = 'image/jpeg'
+    const { jpegData, metadata: tiffMetadata } = await convertTiffToJpeg(data);
+    sourceBitmap = await createImageFromData(jpegData, 'image/jpeg');
+    metadata = tiffMetadata;
+    mimeType = 'image/jpeg';
   } else {
-    sourceBitmap = await createImageFromData(data, mimeType)
+    sourceBitmap = await createImageFromData(data, mimeType);
+    
+    metadata = await extractMetadata(data, mimeType);
   }
 
   // Calculate dimensions based on target width only
@@ -169,16 +209,16 @@ async function createThumbnail(
     sourceBitmap.width,
     sourceBitmap.height,
     maxWidth
-  )
+  );
 
   // Create destination canvas and resize
-  const destCanvas = new OffscreenCanvas(width, height)
-  const ctx = destCanvas.getContext('2d')!
-  ctx.drawImage(sourceBitmap, 0, 0, width, height)
+  const destCanvas = new OffscreenCanvas(width, height);
+  const ctx = destCanvas.getContext('2d')!;
+  ctx.drawImage(sourceBitmap, 0, 0, width, height);
 
   // Convert to JPEG blob
-  const blob = await destCanvas.convertToBlob({ type: 'image/jpeg', quality: 0.9 })
-  const buffer = await blob.arrayBuffer()
+  const blob = await destCanvas.convertToBlob({ type: 'image/jpeg', quality: 0.9 });
+  const buffer = await blob.arrayBuffer();
 
   return {
     image: new Uint8Array(buffer),
@@ -187,5 +227,6 @@ async function createThumbnail(
     sourceHeight: sourceBitmap.height,
     width,
     height,
-  }
+    ...metadata // Include resolution metadata in the result
+  };
 }

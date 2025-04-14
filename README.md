@@ -83,6 +83,9 @@ Returns: `Promise<ThumbnailResult>` where `ThumbnailResult` is:
   mimeType: string;  // Output MIME type (typically 'image/jpeg')
   width: number;     // Thumbnail width
   height: number;    // Thumbnail height
+  xResolution?: number;  // X-resolution in DPI
+  yResolution?: number;  // Y-resolution in DPI
+  resolutionUnit?: string; // Resolution unit (e.g., 'inch', 'cm')
 }
 ```
 
