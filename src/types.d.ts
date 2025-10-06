@@ -10,7 +10,7 @@ export interface ThumbnailOptions {
 
 // Thumbnail result type that's returned to consumers
 export interface ThumbnailResult {
-  image: Uint8Array;
+  image: Uint8Array<ArrayBuffer>;
   mimeType: string;
   sourceWidth: number;
   sourceHeight: number;
