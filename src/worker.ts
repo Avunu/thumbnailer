@@ -1,7 +1,10 @@
 import { initializeGhostscript, renderPageAsImage } from './ghostscript'
-import type { ResolutionUnit, ThumbnailResult, WorkerRequest, WorkerResponse } from './types'
-import UTIF from '../vendor/utif/UTIF.js'
+import type { ResolutionUnit, ThumbnailResult, WorkerRequest, WorkerResponse, UTIFModule } from './types'
+// @ts-ignore - Importing untyped JS library, will type-assert below
+import UTIFImport from '../vendor/utif/UTIF.js';
 import ExifReader from 'exifreader';
+
+const UTIF = UTIFImport as unknown as UTIFModule;
 
 // Initialize immediately
 initializeGhostscript().then(() => {
@@ -87,12 +90,20 @@ async function extractMetadata(data: Uint8Array, mimeType: string): Promise<{ xR
       // Extract resolution info from tags
       if (tags['XResolution']?.value) {
         const value = tags['XResolution'].value;
-        metadata.xResolution = Array.isArray(value) ? value[0] / value[1] : value;
+        if (Array.isArray(value) && typeof value[0] === 'number' && typeof value[1] === 'number') {
+          metadata.xResolution = value[0] / value[1];
+        } else if (typeof value === 'number') {
+          metadata.xResolution = value;
+        }
       }
       
       if (tags['YResolution']?.value) {
         const value = tags['YResolution'].value;
-        metadata.yResolution = Array.isArray(value) ? value[0] / value[1] : value;
+        if (Array.isArray(value) && typeof value[0] === 'number' && typeof value[1] === 'number') {
+          metadata.yResolution = value[0] / value[1];
+        } else if (typeof value === 'number') {
+          metadata.yResolution = value;
+        }
       }
       
       if (tags['ResolutionUnit']?.value) {
@@ -107,10 +118,10 @@ async function extractMetadata(data: Uint8Array, mimeType: string): Promise<{ xR
   return metadata;
 }
 
-async function convertTiffToJpeg(data: Uint8Array): Promise<{ jpegData: Uint8Array, metadata: { xResolution?: number, yResolution?: number, resolutionUnit?: string } }> {
+async function convertTiffToJpeg(data: Uint8Array): Promise<{ jpegData: Uint8Array, metadata: { xResolution?: number, yResolution?: number, resolutionUnit?: ResolutionUnit } }> {
   try {
     // Decode TIFF file
-    const ifds = UTIF.decode(data.buffer);
+    const ifds = UTIF.decode(data.buffer as ArrayBuffer);
     if (!ifds || ifds.length === 0) {
       throw new Error('Failed to decode TIFF: No image data found');
     }
@@ -120,7 +131,7 @@ async function convertTiffToJpeg(data: Uint8Array): Promise<{ jpegData: Uint8Arr
     
     // Try to decode the image and catch any errors
     try {
-      UTIF.decodeImage(data.buffer, ifds[0]);
+      UTIF.decodeImage(data.buffer as ArrayBuffer, ifds[0]);
     } catch (err) {
       console.error('Error decoding TIFF image:', err);
       throw new Error('Failed to decode TIFF image data');
@@ -152,7 +163,7 @@ async function convertTiffToJpeg(data: Uint8Array): Promise<{ jpegData: Uint8Arr
     }
 
     // Put image data
-    const imageData = new ImageData(new Uint8ClampedArray(rgba.buffer), width, height);
+    const imageData = new ImageData(new Uint8ClampedArray(rgba.buffer as ArrayBuffer), width, height);
     ctx.putImageData(imageData, 0, 0);
 
     // Convert to JPEG blob
@@ -167,7 +178,7 @@ async function convertTiffToJpeg(data: Uint8Array): Promise<{ jpegData: Uint8Arr
 }
 
 async function createImageFromData(data: Uint8Array, mimeType: string): Promise<ImageBitmap> {
-  const blob = new Blob([data], { type: mimeType })
+  const blob = new Blob([data as BlobPart], { type: mimeType })
   return await createImageBitmap(blob)
 }
 

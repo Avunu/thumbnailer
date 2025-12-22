@@ -41,14 +41,16 @@ export interface WorkerResponse {
   error?: string;
 }
 
-// Add the window interface extension
-declare global {
-  interface Window {
-    thumbnailGen: ThumbnailerInterface;
-  }
+// UTIF library types
+export interface UTIFIFD {
+  width?: number;
+  height?: number;
+  data?: ArrayBuffer;
+  [key: string]: any;
 }
 
-declare module '*.wasm' {
-  const src: string;
-  export default src;
+export interface UTIFModule {
+  decode(buffer: ArrayBuffer): UTIFIFD[];
+  decodeImage(buffer: ArrayBuffer, ifd: UTIFIFD): void;
+  toRGBA8(ifd: UTIFIFD): Uint8Array;
 }
