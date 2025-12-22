@@ -3,9 +3,12 @@
 /**
  * Plugin Name: Thumbnailer
  * Description: Thumbnailer integration for WordPress
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Avunu LLC
  * Text Domain: thumbnailer
+ * Requires at least: 6.0
+ * Requires PHP: 8.1
+ * Tested up to: 6.9
  */
 
 // Exit if accessed directly
@@ -18,7 +21,7 @@ class Thumbnailer
     public function __construct()
     {
         // Define constants
-        define('THUMBNAILER_VERSION', '1.0.0');
+        define('THUMBNAILER_VERSION', '1.0.1');
         define('THUMBNAILER_PLUGIN_DIR', plugin_dir_path(__FILE__));
         define('THUMBNAILER_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -142,8 +145,7 @@ class Thumbnailer
                     'thumbnailer',
                     $script_path,
                     array(),
-                    $script_version,
-                    true
+                    $script_version
                 );
             }
         }
