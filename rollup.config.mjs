@@ -19,13 +19,15 @@ export default [
       {
         file: 'dist/thumbnailer.js',
         format: 'es',
-        sourcemap: true
+        sourcemap: true,
+        exports: 'named'
       },
       {
         file: 'dist/thumbnailer.umd.js',
         format: 'umd',
         name: 'Thumbnailer',
-        sourcemap: true
+        sourcemap: true,
+        exports: 'named'
       }
     ],
     external: ['@privyid/ghostscript'],
@@ -73,9 +75,21 @@ export default [
     },
     plugins: [
       typescript({
-        tsconfig: './tsconfig.demo.json'
+        tsconfig: false,
+        compilerOptions: {
+          target: 'ES2020',
+          module: 'ESNext',
+          lib: ['ES2020', 'DOM', 'DOM.Iterable'],
+          skipLibCheck: true,
+          moduleResolution: 'bundler',
+          resolveJsonModule: true,
+          isolatedModules: true,
+          strict: false,
+          noEmit: false,
+          declaration: false
+        }
       }),
-      resolve({ browser: true }),
+      resolve({ browser: true, extensions: ['.ts', '.js'] }),
       commonjs()
     ]
   }

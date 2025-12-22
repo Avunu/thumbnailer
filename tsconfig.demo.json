@@ -3,8 +3,8 @@
 	"compilerOptions": {
 		"outDir": "demo",
 		"declaration": false,
-		"declarationDir": "./demo",
-		"declarationMap": false
+		"declarationMap": false,
+		"noEmit": false
 	},
 	"include": [
 		"demo/**/*",

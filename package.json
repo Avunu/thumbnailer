@@ -19,6 +19,7 @@
   "scripts": {
     "dev": "rollup -c -w",
     "build": "rollup -c",
+    "debug": "NO_COLOR=true rollup -c 2>&1 | tee build.log",
     "zip": "npm run build:all && mkdir -p releases && zip -r releases/thumbnailer.zip dist thumbnailer.php css readme.txt",
     "upgrade": "npx npm-check-updates -u && npm install"
   },
