@@ -54,3 +54,9 @@ export interface UTIFModule {
   decodeImage(buffer: ArrayBuffer, ifd: UTIFIFD): void;
   toRGBA8(ifd: UTIFIFD): Uint8Array;
 }
+
+// WASM module declarations
+declare module '*.wasm' {
+  const src: string;
+  export default src;
+}
