@@ -82,9 +82,18 @@ function isTiffType(mimeType: string): boolean {
 async function extractMetadata(data: Uint8Array, mimeType: string): Promise<{ xResolution?: number, yResolution?: number, resolutionUnit?: ResolutionUnit }> {
   const metadata: { xResolution?: number, yResolution?: number, resolutionUnit?: ResolutionUnit } = {};
   
+  // Skip metadata extraction for PostScript/PDF types - they don't have EXIF metadata
+  if (isPostScriptType(mimeType)) {
+    return metadata;
+  }
+  
   try {
     // Load tags with ExifReader
-    const tags = await ExifReader.load(data.buffer, {async: true});
+    // Exclude XMP parsing since DOMParser is not available in Web Workers
+    const tags = await ExifReader.load(data.buffer, { 
+      async: true, 
+      excludeTags: { xmp: true }
+    });
     
     if (tags) {
       // Extract resolution info from tags
@@ -196,22 +205,21 @@ async function createThumbnail(
   maxWidth: number,
 ): Promise<ThumbnailResult> {
   let sourceBitmap: ImageBitmap;
-  let metadata = await extractMetadata(data, mimeType);
+  let metadata: { xResolution?: number, yResolution?: number, resolutionUnit?: ResolutionUnit } = {};
 
   // Convert TIFF/PostScript to JPEG if needed
   if (isPostScriptType(mimeType)) {
+    // PostScript/PDF don't have EXIF metadata, and GhostScript output is raw JPEG
     const jpegData = await renderPageAsImage(data);
     sourceBitmap = await createImageFromData(jpegData, 'image/jpeg');
-    metadata = await extractMetadata(jpegData, 'image/jpeg');
-    mimeType = 'image/jpeg';
+    // GhostScript renders at 150 DPI by default
+    metadata = { xResolution: 150, yResolution: 150, resolutionUnit: 'inch' };
   } else if (isTiffType(mimeType)) {
     const { jpegData, metadata: tiffMetadata } = await convertTiffToJpeg(data);
     sourceBitmap = await createImageFromData(jpegData, 'image/jpeg');
     metadata = tiffMetadata;
-    mimeType = 'image/jpeg';
   } else {
     sourceBitmap = await createImageFromData(data, mimeType);
-    
     metadata = await extractMetadata(data, mimeType);
   }
 
