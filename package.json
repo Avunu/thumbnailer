@@ -1,7 +1,7 @@
 {
   "name": "thumbnailer",
   "private": true,
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "files": [
     "dist"
@@ -21,22 +21,32 @@
     "build": "rollup -c",
     "debug": "NO_COLOR=true rollup -c 2>&1 | tee build.log",
     "zip": "npm run build:all && mkdir -p releases && zip -r releases/thumbnailer.zip dist thumbnailer.php css readme.txt",
-    "upgrade": "npx npm-check-updates -u && npm install"
+    "upgrade": "npx npm-check-updates -u && npm install",
+    "lint": "eslint 'src/**/*.{ts,tsx}'",
+    "lint:fix": "eslint 'src/**/*.{ts,tsx}' --fix",
+    "format": "prettier --write 'src/**/*.{ts,tsx,css,json}'",
+    "format:check": "prettier --check 'src/**/*.{ts,tsx,css,json}'",
+    "fix": "npm run lint:fix && npm run format"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-html": "^2.0.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-typescript": "^12.3.0",
     "@rollup/plugin-wasm": "^6.2.2",
     "@types/fs-extra": "^11.0.4",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
     "fs-extra": "^11.3.3",
     "path": "^0.12.7",
+    "prettier": "^3.8.1",
     "rollup": "^4.55.1",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-serve": "^3.0.0",
     "tslib": "^2.8.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.53.1"
   },
   "dependencies": {
     "@privyid/ghostscript": "latest",

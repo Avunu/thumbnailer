@@ -3,7 +3,7 @@
 /**
  * Plugin Name: Thumbnailer
  * Description: Thumbnailer integration for WordPress
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: Avunu LLC
  * Text Domain: thumbnailer
  * Requires at least: 6.0
@@ -21,7 +21,7 @@ class Thumbnailer
     public function __construct()
     {
         // Define constants
-        define('THUMBNAILER_VERSION', '1.0.2');
+        define('THUMBNAILER_VERSION', '1.0.3');
         define('THUMBNAILER_PLUGIN_DIR', plugin_dir_path(__FILE__));
         define('THUMBNAILER_PLUGIN_URL', plugin_dir_url(__FILE__));
 

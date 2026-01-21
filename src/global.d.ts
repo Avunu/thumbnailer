@@ -3,9 +3,9 @@
 
 // Extend the global Window interface
 declare global {
-  interface Window {
-    thumbnailGen: import('./types').ThumbnailerInterface;
-  }
+	interface Window {
+		thumbnailGen: import('./types').ThumbnailerInterface;
+	}
 }
 
 // Required export to make this a proper module file when using declare global

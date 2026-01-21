@@ -1,146 +1,148 @@
 import type { WorkerRequest, WorkerResponse, ThumbnailOptions, ThumbnailResult } from './types';
 
 class Thumbnailer {
-  private workerInstance: Worker | null = null;
-  private initializationPromise: Promise<Worker> | null = null;
-  private pendingRequests = new Map<string, (response: WorkerResponse) => void>();
-  private initialized: boolean = false;
-  private workerUrl: string;
-  private readyPromise: Promise<void>;
-  private supportsOffscreenCanvas: boolean;
+	private workerInstance: Worker | null = null;
+	private initializationPromise: Promise<Worker> | null = null;
+	private pendingRequests = new Map<string, (response: WorkerResponse) => void>();
+	private initialized: boolean = false;
+	private workerUrl: string;
+	private readyPromise: Promise<void>;
+	private supportsOffscreenCanvas: boolean;
 
-  constructor(workerUrl?: string) {
-    // Check if OffscreenCanvas is supported
-    this.supportsOffscreenCanvas = typeof OffscreenCanvas !== 'undefined';
-    
-    const scriptUrl = document.currentScript instanceof HTMLScriptElement
-      ? document.currentScript.src
-      : undefined;
+	constructor(workerUrl?: string) {
+		// Check if OffscreenCanvas is supported
+		this.supportsOffscreenCanvas = typeof OffscreenCanvas !== 'undefined';
 
-    this.workerUrl = workerUrl || (scriptUrl
-      ? scriptUrl.replace('thumbnailer.js', 'worker.js')
-      : new URL('./worker.js', import.meta.url).href);
+		const scriptUrl = document.currentScript instanceof HTMLScriptElement ? document.currentScript.src : undefined;
 
-    // Initialize the ready promise
-    if (!this.supportsOffscreenCanvas) {
-      console.error('Thumbnailer: OffscreenCanvas is not supported in this browser. Thumbnailer will not be initialized.');
-      this.readyPromise = Promise.reject(new Error('OffscreenCanvas is not supported in this browser'));
-    } else {
-      this.readyPromise = this.load().then(() => {
-        this.initialized = true;
-      });
-    }
+		this.workerUrl =
+			workerUrl ||
+			(scriptUrl ? scriptUrl.replace('thumbnailer.js', 'worker.js') : new URL('./worker.js', import.meta.url).href);
 
-    if (typeof window !== 'undefined') {
-      Object.defineProperty(window, 'thumbnailGen', {
-        get: () => this,
-        configurable: false
-      });
-    }
+		// Initialize the ready promise
+		if (!this.supportsOffscreenCanvas) {
+			console.error(
+				'Thumbnailer: OffscreenCanvas is not supported in this browser. Thumbnailer will not be initialized.'
+			);
+			this.readyPromise = Promise.reject(new Error('OffscreenCanvas is not supported in this browser'));
+		} else {
+			this.readyPromise = this.load().then(() => {
+				this.initialized = true;
+			});
+		}
 
-    // Only initialize if OffscreenCanvas is supported
-    if (this.supportsOffscreenCanvas) {
-      this.load().then(() => {
-        console.log('Thumbnailer initialized');
-      }).catch(err => {
-        console.error('Failed to initialize Thumbnailer:', err);
-      });
-    }
-  }
+		if (typeof window !== 'undefined') {
+			Object.defineProperty(window, 'thumbnailGen', {
+				get: () => this,
+				configurable: false,
+			});
+		}
 
-  private generateRequestId(): string {
-    return Math.random().toString(36).slice(2);
-  }
+		// Only initialize if OffscreenCanvas is supported
+		if (this.supportsOffscreenCanvas) {
+			this.load()
+				.then(() => {
+					console.log('Thumbnailer initialized');
+				})
+				.catch((err) => {
+					console.error('Failed to initialize Thumbnailer:', err);
+				});
+		}
+	}
 
-  public load(): Promise<Worker> {
-    // Fail immediately if OffscreenCanvas is not supported
-    if (!this.supportsOffscreenCanvas) {
-      return Promise.reject(new Error('OffscreenCanvas is not supported in this browser'));
-    }
+	private generateRequestId(): string {
+		return Math.random().toString(36).slice(2);
+	}
 
-    if (this.workerInstance) {
-      return Promise.resolve(this.workerInstance);
-    }
+	public load(): Promise<Worker> {
+		// Fail immediately if OffscreenCanvas is not supported
+		if (!this.supportsOffscreenCanvas) {
+			return Promise.reject(new Error('OffscreenCanvas is not supported in this browser'));
+		}
 
-    if (!this.initializationPromise) {
-      this.initializationPromise = new Promise((resolve, reject) => {
-        try {
-          const worker = new Worker(this.workerUrl, { type: 'module' });
+		if (this.workerInstance) {
+			return Promise.resolve(this.workerInstance);
+		}
 
-          worker.onerror = (err) => {
-            console.error('Worker initialization error:', err);
-            reject(err);
-          };
+		if (!this.initializationPromise) {
+			this.initializationPromise = new Promise((resolve, reject) => {
+				try {
+					const worker = new Worker(this.workerUrl, { type: 'module' });
 
-          worker.onmessage = (event) => {
-            const response = event.data as WorkerResponse;
+					worker.onerror = (err) => {
+						console.error('Worker initialization error:', err);
+						reject(err);
+					};
 
-            if (response.type === 'ready') {
-              this.workerInstance = worker;
-              this.initialized = true;
-              resolve(worker);
-              return;
-            }
+					worker.onmessage = (event) => {
+						const response = event.data as WorkerResponse;
 
-            const resolver = this.pendingRequests.get(response.id);
-            if (resolver) {
-              this.pendingRequests.delete(response.id);
-              resolver(response);
-            }
-          };
-        } catch (error) {
-          console.error('Failed to create worker:', error);
-          reject(error);
-        }
-      });
-    }
+						if (response.type === 'ready') {
+							this.workerInstance = worker;
+							this.initialized = true;
+							resolve(worker);
+							return;
+						}
 
-    return this.initializationPromise;
-  }
+						const resolver = this.pendingRequests.get(response.id);
+						if (resolver) {
+							this.pendingRequests.delete(response.id);
+							resolver(response);
+						}
+					};
+				} catch (error) {
+					console.error('Failed to create worker:', error);
+					reject(error);
+				}
+			});
+		}
 
-  private async sendWorkerRequest(request: Omit<WorkerRequest, 'id'>): Promise<WorkerResponse> {
-    if (!this.supportsOffscreenCanvas) {
-      throw new Error('OffscreenCanvas is not supported in this browser');
-    }
-    
-    console.log('Sending worker request:', request);
-    const worker = await this.load();
-    const id = this.generateRequestId();
+		return this.initializationPromise;
+	}
 
-    return new Promise((resolve) => {
-      this.pendingRequests.set(id, resolve);
-      worker.postMessage({ ...request, id });
-    });
-  }
+	private async sendWorkerRequest(request: Omit<WorkerRequest, 'id'>): Promise<WorkerResponse> {
+		if (!this.supportsOffscreenCanvas) {
+			throw new Error('OffscreenCanvas is not supported in this browser');
+		}
 
-  public isInitialized(): boolean {
-    return this.initialized;
-  }
+		console.log('Sending worker request:', request);
+		const worker = await this.load();
+		const id = this.generateRequestId();
 
-  public isSupported(): boolean {
-    return this.supportsOffscreenCanvas;
-  }
+		return new Promise((resolve) => {
+			this.pendingRequests.set(id, resolve);
+			worker.postMessage({ ...request, id });
+		});
+	}
 
-  public async createThumbnail(options: ThumbnailOptions): Promise<ThumbnailResult> {
-    // Check for support before proceeding
-    if (!this.supportsOffscreenCanvas) {
-      throw new Error('OffscreenCanvas is not supported in this browser');
-    }
-    
-    // Wait for worker to be ready
-    await this.readyPromise;
+	public isInitialized(): boolean {
+		return this.initialized;
+	}
 
-    const response = await this.sendWorkerRequest({
-      type: 'createThumbnail',
-      payload: options
-    });
+	public isSupported(): boolean {
+		return this.supportsOffscreenCanvas;
+	}
 
-    if (response.type === 'error') {
-      throw new Error(response.error);
-    }
+	public async createThumbnail(options: ThumbnailOptions): Promise<ThumbnailResult> {
+		// Check for support before proceeding
+		if (!this.supportsOffscreenCanvas) {
+			throw new Error('OffscreenCanvas is not supported in this browser');
+		}
 
-    return response.payload as ThumbnailResult;
-  }
+		// Wait for worker to be ready
+		await this.readyPromise;
+
+		const response = await this.sendWorkerRequest({
+			type: 'createThumbnail',
+			payload: options,
+		});
+
+		if (response.type === 'error') {
+			throw new Error(response.error);
+		}
+
+		return response.payload as ThumbnailResult;
+	}
 }
 
 // Create and export the default instance
