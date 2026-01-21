@@ -1,4 +1,4 @@
-import type { WorkerRequest, WorkerResponse } from './types';
+import type { WorkerRequest, WorkerResponse, ThumbnailOptions, ThumbnailResult } from './types';
 
 class Thumbnailer {
   private workerInstance: Worker | null = null;
@@ -121,14 +121,7 @@ class Thumbnailer {
     return this.supportsOffscreenCanvas;
   }
 
-  public async createThumbnail(
-    options: {
-      file: Uint8Array;
-      filename: string;
-      mimeType: string;
-      maxWidth: number;
-    }
-  ) {
+  public async createThumbnail(options: ThumbnailOptions): Promise<ThumbnailResult> {
     // Check for support before proceeding
     if (!this.supportsOffscreenCanvas) {
       throw new Error('OffscreenCanvas is not supported in this browser');
@@ -146,7 +139,7 @@ class Thumbnailer {
       throw new Error(response.error);
     }
 
-    return response.payload!;
+    return response.payload as ThumbnailResult;
   }
 }
 
