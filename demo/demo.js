@@ -40,9 +40,9 @@
                 log.innerHTML = '';
             addLog(`Processing file: ${file.name} (${file.type})`);
             const startTime = performance.now();
-            const arrayBuffer = await file.arrayBuffer();
+            // Pass File directly - conversion happens in worker
             const result = await window.thumbnailGen.createThumbnail({
-                file: new Uint8Array(arrayBuffer),
+                file: file,
                 filename: file.name,
                 mimeType: file.type,
                 maxWidth: 500

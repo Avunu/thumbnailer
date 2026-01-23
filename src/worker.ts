@@ -29,11 +29,21 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 
 	try {
 		switch (type) {
-			case 'createThumbnail':
+			case 'createThumbnail': {
 				if (!payload) throw new Error('No payload provided');
+
+				// Convert File to Uint8Array if needed (this happens in the worker, off main thread)
+				let fileData: Uint8Array;
+				if (payload.file instanceof File) {
+					fileData = new Uint8Array(await payload.file.arrayBuffer());
+				} else {
+					fileData = payload.file;
+				}
+
 				response.type = 'result';
-				response.payload = await createThumbnail(payload.file, payload.mimeType, payload.maxWidth);
+				response.payload = await createThumbnail(fileData, payload.mimeType, payload.maxWidth);
 				break;
+			}
 
 			default:
 				throw new Error(`Unknown request type: ${type}`);

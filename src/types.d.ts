@@ -2,7 +2,7 @@ export type ResolutionUnit = 'inch' | 'cm' | 'none';
 
 // createThumbnail options
 export interface ThumbnailOptions {
-	file: Uint8Array;
+	file: Uint8Array | File;
 	filename: string;
 	mimeType: string;
 	maxWidth: number;
