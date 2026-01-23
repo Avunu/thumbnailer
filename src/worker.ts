@@ -33,11 +33,15 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 				if (!payload) throw new Error('No payload provided');
 
 				// Convert File to Uint8Array if needed (this happens in the worker, off main thread)
+				// Note: File objects passed via postMessage retain their arrayBuffer method
+				// but lose their prototype, so we check for the method instead of instanceof
 				let fileData: Uint8Array;
-				if (payload.file instanceof File) {
+				if (payload.file instanceof Uint8Array) {
+					fileData = payload.file;
+				} else if (payload.file && typeof payload.file.arrayBuffer === 'function') {
 					fileData = new Uint8Array(await payload.file.arrayBuffer());
 				} else {
-					fileData = payload.file;
+					throw new Error('Invalid file data: expected File or Uint8Array');
 				}
 
 				response.type = 'result';
