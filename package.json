@@ -41,15 +41,15 @@
     "fs-extra": "^11.3.3",
     "path": "^0.12.7",
     "prettier": "^3.8.1",
-    "rollup": "^4.56.0",
+    "rollup": "^4.57.0",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-serve": "^3.0.0",
     "tslib": "^2.8.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.53.1"
+    "typescript-eslint": "^8.54.0"
   },
   "dependencies": {
     "@privyid/ghostscript": "latest",
-    "exifreader": "^4.36.0"
+    "exifreader": "^4.36.1"
   }
 }
