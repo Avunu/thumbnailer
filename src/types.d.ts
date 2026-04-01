@@ -1,4 +1,4 @@
-export type ResolutionUnit = 'inch' | 'cm' | 'none';
+export type ResolutionUnit = "inch" | "cm" | "none";
 
 // createThumbnail options
 export interface ThumbnailOptions {
@@ -30,14 +30,14 @@ export interface ThumbnailerInterface {
 
 export interface WorkerRequest {
 	id: string;
-	type: 'initialize' | 'createThumbnail';
+	type: "initialize" | "createThumbnail";
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	payload?: any;
 }
 
 export interface WorkerResponse {
 	id: string;
-	type: 'ready' | 'initialized' | 'result' | 'error';
+	type: "ready" | "initialized" | "result" | "error";
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	payload?: any;
 	error?: string;
@@ -59,7 +59,7 @@ export interface UTIFModule {
 }
 
 // WASM module declarations
-declare module '*.wasm' {
+declare module "*.wasm" {
 	const src: string;
 	export default src;
 }

@@ -1,9 +1,15 @@
-import { initializeGhostscript, renderPageAsImage } from './ghostscript';
-import type { ResolutionUnit, ThumbnailResult, WorkerRequest, WorkerResponse, UTIFModule } from './types';
+import { initializeGhostscript, renderPageAsImage } from "./ghostscript";
+import type {
+	ResolutionUnit,
+	ThumbnailResult,
+	WorkerRequest,
+	WorkerResponse,
+	UTIFModule,
+} from "./types";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - Untyped JS library from vendor folder
-import UTIFImport from '../vendor/utif/UTIF.js';
-import ExifReader from 'exifreader';
+import UTIFImport from "../vendor/utif/UTIF.js";
+import ExifReader from "exifreader";
 
 const UTIF = UTIFImport as unknown as UTIFModule;
 
@@ -11,26 +17,26 @@ const UTIF = UTIFImport as unknown as UTIFModule;
 initializeGhostscript()
 	.then(() => {
 		// Send ready message only after initialization is complete
-		self.postMessage({ type: 'ready', id: 'worker' });
+		self.postMessage({ type: "ready", id: "worker" });
 	})
 	.catch((error) => {
-		console.error('Failed to initialize ghostscript:', error);
+		console.error("Failed to initialize ghostscript:", error);
 		self.postMessage({
-			type: 'error',
-			id: 'worker',
-			error: 'Failed to initialize worker: ' + error.message,
+			type: "error",
+			id: "worker",
+			error: "Failed to initialize worker: " + error.message,
 		});
 	});
 
 // Handle incoming messages
 self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 	const { type, id, payload } = event.data;
-	const response: WorkerResponse = { type: 'error', id, error: 'Unknown error' };
+	const response: WorkerResponse = { type: "error", id, error: "Unknown error" };
 
 	try {
 		switch (type) {
-			case 'createThumbnail': {
-				if (!payload) throw new Error('No payload provided');
+			case "createThumbnail": {
+				if (!payload) throw new Error("No payload provided");
 
 				// Convert File to Uint8Array if needed (this happens in the worker, off main thread)
 				// Note: File objects passed via postMessage retain their arrayBuffer method
@@ -38,13 +44,13 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 				let fileData: Uint8Array;
 				if (payload.file instanceof Uint8Array) {
 					fileData = payload.file;
-				} else if (payload.file && typeof payload.file.arrayBuffer === 'function') {
+				} else if (payload.file && typeof payload.file.arrayBuffer === "function") {
 					fileData = new Uint8Array(await payload.file.arrayBuffer());
 				} else {
-					throw new Error('Invalid file data: expected File or Uint8Array');
+					throw new Error("Invalid file data: expected File or Uint8Array");
 				}
 
-				response.type = 'result';
+				response.type = "result";
 				response.payload = await createThumbnail(fileData, payload.mimeType, payload.maxWidth);
 				break;
 			}
@@ -53,9 +59,9 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 				throw new Error(`Unknown request type: ${type}`);
 		}
 	} catch (error) {
-		response.type = 'error';
+		response.type = "error";
 		response.error = error instanceof Error ? error.message : String(error);
-		console.error('Worker error:', response.error);
+		console.error("Worker error:", response.error);
 	}
 
 	self.postMessage(response);
@@ -63,40 +69,41 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 
 function isPostScriptType(mimeType: string): boolean {
 	const psTypes = [
-		'application/postscript',
-		'application/ps',
-		'application/x-eps',
-		'application/x-postscript',
-		'application/x-postscript-not-eps',
-		'application/x-ps',
-		'application/pdf',
-		'image/eps',
-		'image/x-eps',
-		'text/postscript',
+		"application/postscript",
+		"application/ps",
+		"application/x-eps",
+		"application/x-postscript",
+		"application/x-postscript-not-eps",
+		"application/x-ps",
+		"application/pdf",
+		"image/eps",
+		"image/x-eps",
+		"text/postscript",
 	];
 	return psTypes.includes(mimeType);
 }
 
 function isTiffType(mimeType: string): boolean {
 	const tiffTypes = [
-		'application/tif',
-		'application/tiff',
-		'application/x-tif',
-		'application/x-tiff',
-		'image/tif',
-		'image/tiff',
-		'image/tiff-fx',
-		'image/x-tif',
-		'image/x-tiff',
+		"application/tif",
+		"application/tiff",
+		"application/x-tif",
+		"application/x-tiff",
+		"image/tif",
+		"image/tiff",
+		"image/tiff-fx",
+		"image/x-tif",
+		"image/x-tiff",
 	];
 	return tiffTypes.includes(mimeType);
 }
 
 async function extractMetadata(
 	data: Uint8Array,
-	mimeType: string
+	mimeType: string,
 ): Promise<{ xResolution?: number; yResolution?: number; resolutionUnit?: ResolutionUnit }> {
-	const metadata: { xResolution?: number; yResolution?: number; resolutionUnit?: ResolutionUnit } = {};
+	const metadata: { xResolution?: number; yResolution?: number; resolutionUnit?: ResolutionUnit } =
+		{};
 
 	// Skip metadata extraction for PostScript/PDF types - they don't have EXIF metadata
 	if (isPostScriptType(mimeType)) {
@@ -113,27 +120,27 @@ async function extractMetadata(
 
 		if (tags) {
 			// Extract resolution info from tags
-			if (tags['XResolution']?.value) {
-				const value = tags['XResolution'].value;
-				if (Array.isArray(value) && typeof value[0] === 'number' && typeof value[1] === 'number') {
+			if (tags["XResolution"]?.value) {
+				const value = tags["XResolution"].value;
+				if (Array.isArray(value) && typeof value[0] === "number" && typeof value[1] === "number") {
 					metadata.xResolution = value[0] / value[1];
-				} else if (typeof value === 'number') {
+				} else if (typeof value === "number") {
 					metadata.xResolution = value;
 				}
 			}
 
-			if (tags['YResolution']?.value) {
-				const value = tags['YResolution'].value;
-				if (Array.isArray(value) && typeof value[0] === 'number' && typeof value[1] === 'number') {
+			if (tags["YResolution"]?.value) {
+				const value = tags["YResolution"].value;
+				if (Array.isArray(value) && typeof value[0] === "number" && typeof value[1] === "number") {
 					metadata.yResolution = value[0] / value[1];
-				} else if (typeof value === 'number') {
+				} else if (typeof value === "number") {
 					metadata.yResolution = value;
 				}
 			}
 
-			if (tags['ResolutionUnit']?.value) {
-				const unit = tags['ResolutionUnit'].value;
-				metadata.resolutionUnit = unit === 2 ? 'inch' : unit === 3 ? 'cm' : 'none';
+			if (tags["ResolutionUnit"]?.value) {
+				const unit = tags["ResolutionUnit"].value;
+				metadata.resolutionUnit = unit === 2 ? "inch" : unit === 3 ? "cm" : "none";
 			}
 		}
 	} catch (error) {
@@ -151,29 +158,29 @@ async function convertTiffToJpeg(data: Uint8Array): Promise<{
 		// Decode TIFF file
 		const ifds = UTIF.decode(data.buffer as ArrayBuffer);
 		if (!ifds || ifds.length === 0) {
-			throw new Error('Failed to decode TIFF: No image data found');
+			throw new Error("Failed to decode TIFF: No image data found");
 		}
 
 		// Extract resolution metadata
-		const metadata = await extractMetadata(data, 'image/tiff');
+		const metadata = await extractMetadata(data, "image/tiff");
 
 		// Try to decode the image and catch any errors
 		try {
 			UTIF.decodeImage(data.buffer as ArrayBuffer, ifds[0]);
 		} catch (err) {
-			console.error('Error decoding TIFF image:', err);
-			throw new Error('Failed to decode TIFF image data');
+			console.error("Error decoding TIFF image:", err);
+			throw new Error("Failed to decode TIFF image data");
 		}
 
 		// Check if image data was actually decoded
 		if (!ifds[0].data) {
-			throw new Error('No pixel data found in TIFF');
+			throw new Error("No pixel data found in TIFF");
 		}
 
 		// Convert to RGBA
 		const rgba = UTIF.toRGBA8(ifds[0]);
 		if (!rgba || rgba.length === 0) {
-			throw new Error('Failed to convert TIFF to RGBA format');
+			throw new Error("Failed to convert TIFF to RGBA format");
 		}
 
 		// Create canvas and draw RGBA data
@@ -185,23 +192,29 @@ async function convertTiffToJpeg(data: Uint8Array): Promise<{
 		}
 
 		const canvas = new OffscreenCanvas(width, height);
-		const ctx = canvas.getContext('2d');
+		const ctx = canvas.getContext("2d");
 		if (!ctx) {
-			throw new Error('Could not create canvas context for TIFF conversion');
+			throw new Error("Could not create canvas context for TIFF conversion");
 		}
 
 		// Put image data
-		const imageData = new ImageData(new Uint8ClampedArray(rgba.buffer as ArrayBuffer), width, height);
+		const imageData = new ImageData(
+			new Uint8ClampedArray(rgba.buffer as ArrayBuffer),
+			width,
+			height,
+		);
 		ctx.putImageData(imageData, 0, 0);
 
 		// Convert to JPEG blob
-		const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.9 });
+		const blob = await canvas.convertToBlob({ type: "image/jpeg", quality: 0.9 });
 		const jpegData = new Uint8Array(await blob.arrayBuffer());
 
 		return { jpegData, metadata };
 	} catch (error) {
-		console.error('TIFF conversion error:', error);
-		throw new Error(`Failed to convert TIFF: ${error instanceof Error ? error.message : String(error)}`);
+		console.error("TIFF conversion error:", error);
+		throw new Error(
+			`Failed to convert TIFF: ${error instanceof Error ? error.message : String(error)}`,
+		);
 	}
 }
 
@@ -213,7 +226,7 @@ async function createImageFromData(data: Uint8Array, mimeType: string): Promise<
 function calculateAspectRatio(
 	srcWidth: number,
 	srcHeight: number,
-	targetWidth: number
+	targetWidth: number,
 ): { width: number; height: number } {
 	const ratio = targetWidth / srcWidth;
 	return {
@@ -222,20 +235,25 @@ function calculateAspectRatio(
 	};
 }
 
-async function createThumbnail(data: Uint8Array, mimeType: string, maxWidth: number): Promise<ThumbnailResult> {
+async function createThumbnail(
+	data: Uint8Array,
+	mimeType: string,
+	maxWidth: number,
+): Promise<ThumbnailResult> {
 	let sourceBitmap: ImageBitmap;
-	let metadata: { xResolution?: number; yResolution?: number; resolutionUnit?: ResolutionUnit } = {};
+	let metadata: { xResolution?: number; yResolution?: number; resolutionUnit?: ResolutionUnit } =
+		{};
 
 	// Convert TIFF/PostScript to JPEG if needed
 	if (isPostScriptType(mimeType)) {
 		// PostScript/PDF don't have EXIF metadata, and GhostScript output is raw JPEG
 		const jpegData = await renderPageAsImage(data);
-		sourceBitmap = await createImageFromData(jpegData, 'image/jpeg');
+		sourceBitmap = await createImageFromData(jpegData, "image/jpeg");
 		// GhostScript renders at 150 DPI by default
-		metadata = { xResolution: 150, yResolution: 150, resolutionUnit: 'inch' };
+		metadata = { xResolution: 150, yResolution: 150, resolutionUnit: "inch" };
 	} else if (isTiffType(mimeType)) {
 		const { jpegData, metadata: tiffMetadata } = await convertTiffToJpeg(data);
-		sourceBitmap = await createImageFromData(jpegData, 'image/jpeg');
+		sourceBitmap = await createImageFromData(jpegData, "image/jpeg");
 		metadata = tiffMetadata;
 	} else {
 		sourceBitmap = await createImageFromData(data, mimeType);
@@ -247,19 +265,19 @@ async function createThumbnail(data: Uint8Array, mimeType: string, maxWidth: num
 
 	// Create destination canvas and resize
 	const destCanvas = new OffscreenCanvas(width, height);
-	const ctx = destCanvas.getContext('2d');
+	const ctx = destCanvas.getContext("2d");
 	if (!ctx) {
-		throw new Error('Failed to get 2D canvas context');
+		throw new Error("Failed to get 2D canvas context");
 	}
 	ctx.drawImage(sourceBitmap, 0, 0, width, height);
 
 	// Convert to JPEG blob
-	const blob = await destCanvas.convertToBlob({ type: 'image/jpeg', quality: 0.9 });
+	const blob = await destCanvas.convertToBlob({ type: "image/jpeg", quality: 0.9 });
 	const buffer = await blob.arrayBuffer();
 
 	return {
 		image: new Uint8Array(buffer),
-		mimeType: 'image/jpeg',
+		mimeType: "image/jpeg",
 		sourceWidth: sourceBitmap.width,
 		sourceHeight: sourceBitmap.height,
 		width,

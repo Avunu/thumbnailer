@@ -4,7 +4,7 @@
 // Extend the global Window interface
 declare global {
 	interface Window {
-		thumbnailGen: import('./types').ThumbnailerInterface;
+		thumbnailGen: import("./types").ThumbnailerInterface;
 	}
 }
 
