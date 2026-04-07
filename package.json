@@ -47,6 +47,6 @@
   },
   "dependencies": {
     "@privyid/ghostscript": "latest",
-    "exifreader": "^4.37.0"
+    "exifreader": "^4.38.0"
   }
 }
