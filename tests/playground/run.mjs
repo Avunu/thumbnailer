@@ -12,7 +12,7 @@
 // runs under `nix develop` in CI rather than as a sandboxed `nix build`.
 
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { runCLI } from "@wp-playground/cli";
@@ -20,6 +20,13 @@ import { runCLI } from "@wp-playground/cli";
 const repoRoot = resolve(import.meta.dirname, "..", "..");
 const zipPath = process.env.THUMBNAILER_ZIP ?? join(repoRoot, "result", "thumbnailer.zip");
 const PORT = Number(process.env.PLAYGROUND_PORT ?? 9400);
+
+// Read the expected version rather than hard-coding it. package.json is the
+// source of truth that flake.nix stamps into the plugin at build time, and
+// Release Please rewrites it — a literal here fails on the one PR that most
+// needs to pass, the release PR itself. Asserting against it also makes this a
+// stronger check: it proves the build-time stamping actually happened.
+const expectedVersion = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf8")).version;
 
 // ── Assertions ──────────────────────────────────────────────────────────────
 let failures = 0;
@@ -140,9 +147,9 @@ try {
 		"the bundle is ESM and spawns a module worker; a classic script tag would fail outright",
 	);
 	check(
-		"cache-busts on the plugin version",
-		tag !== undefined && /thumbnailer\.js\?ver=1\.0\.3/u.test(tag),
-		`expected ?ver=1.0.3 — a filemtime() cache-buster would show a timestamp, or 1 under Nix.\n       got: ${tag ?? "(no tag)"}`,
+		`cache-busts on the plugin version (${expectedVersion})`,
+		tag !== undefined && tag.includes(`thumbnailer.js?ver=${expectedVersion}`),
+		`expected ?ver=${expectedVersion} — a filemtime() cache-buster would show a timestamp, or 1 under Nix.\n       got: ${tag ?? "(no tag)"}`,
 	);
 	checkNoPhpDiagnostics("configured page", enabled.html);
 
