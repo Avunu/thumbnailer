@@ -1,0 +1,21 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: 8
+    # The plugin header declares 8.1 as the floor, so analyse against that
+    # rather than against whatever PHP the dev shell happens to ship.
+    phpVersion: 80100
+    paths:
+        - thumbnailer.php
+        - src/php
+    bootstrapFiles:
+        - phpstan-bootstrap.php
+    treatPhpDocTypesAsCertain: false
+    ignoreErrors:
+        # PucFactory::buildUpdateChecker() is typed as a broad union of every
+        # supported checker. Narrowing it would mean naming the version-suffixed
+        # (v5pX) classes, which change on every plugin-update-checker release.
+        -
+            message: '#Call to an undefined method YahnisElsts\\PluginUpdateChecker\\.*#'
+            path: thumbnailer.php

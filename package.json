@@ -1,52 +1,74 @@
 {
-  "name": "thumbnailer",
-  "private": true,
+  "name": "@avunu/thumbnailer",
   "version": "1.0.3",
+  "description": "Client-side thumbnail generation for PDF, PostScript, TIFF and common image formats, using Ghostscript-WASM and OffscreenCanvas in a Web Worker.",
+  "license": "AGPL-3.0-only",
   "type": "module",
   "files": [
     "dist"
   ],
-  "types": "./dist/index.d.ts",
   "main": "./dist/thumbnailer.umd.js",
-  "module": "./dist/thumbnailer.es.js",
+  "module": "./dist/thumbnailer.js",
+  "types": "./dist/thumbnailer.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/thumbnailer.es.js",
+      "types": "./dist/thumbnailer.d.ts",
+      "import": "./dist/thumbnailer.js",
       "require": "./dist/thumbnailer.umd.js"
-    }
+    },
+    "./worker": "./dist/worker.js",
+    "./gs.wasm": "./dist/gs.wasm"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Avunu/thumbnailer.git"
+  },
+  "homepage": "https://github.com/Avunu/thumbnailer",
+  "bugs": {
+    "url": "https://github.com/Avunu/thumbnailer/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "engines": {
+    "node": ">=22"
   },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json && rollup -c",
+    "build:demo": "BUILD_DEMO=1 rollup -c",
     "dev": "rollup -c -w",
-    "build": "rollup -c",
-    "debug": "NO_COLOR=true rollup -c 2>&1 | tee build.log",
-    "zip": "npm run build:all && mkdir -p releases && zip -r releases/thumbnailer.zip dist thumbnailer.php css readme.txt",
-    "upgrade": "npx npm-check-updates -u && npm install",
-    "lint": "oxlint src/",
-    "lint:fix": "oxlint --fix src/",
-    "format": "oxfmt src/",
-    "format:check": "oxfmt --check src/",
-    "fix": "npm run lint:fix && npm run format"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "lint:typecheck": "oxlint --type-aware -c .oxlintrc.typecheck.json .",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "versions": "node scripts/check-versions.mjs",
+    "check": "npm run format:check && npm run lint && npm run lint:typecheck && npm run typecheck && npm run versions",
+    "test": "vitest run",
+    "test:browser": "node scripts/run-browser-tests.mjs",
+    "test:playground": "node tests/playground/run.mjs",
+    "prepublishOnly": "npm run build",
+    "upgrade": "npx npm-check-updates -u && npm install"
   },
   "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "@privyid/ghostscript": "0.1.0-alpha.1",
     "@rollup/plugin-commonjs": "^29.0.2",
-    "@rollup/plugin-html": "^2.0.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-typescript": "^12.3.0",
     "@rollup/plugin-wasm": "^6.2.2",
-    "@types/fs-extra": "^11.0.4",
-    "fs-extra": "^11.3.4",
-    "path": "^0.12.7",
-    "oxfmt": "latest",
-    "oxlint": "latest",
+    "@types/node": "^26.2.0",
+    "exifreader": "^4.38.0",
+    "jsdom": "^30.0.1",
+    "oxfmt": "0.63.0",
+    "oxlint": "1.78.0",
+    "oxlint-tsgolint": "7.0.2001",
     "rollup": "^4.60.1",
     "rollup-plugin-copy": "^3.5.0",
-    "rollup-plugin-serve": "^3.0.0",
     "tslib": "^2.8.1",
-    "typescript": "^6.0.2"
-  },
-  "dependencies": {
-    "@privyid/ghostscript": "latest",
-    "exifreader": "^4.38.0"
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.10"
   }
 }

@@ -1,0 +1,13 @@
+{
+  "name": "thumbnailer-playground-tests",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "WordPress integration tests. A separate package with its own lockfile so @wp-playground/cli never enters the root package-lock.json that the Nix build consumes.",
+  "scripts": {
+    "test": "node run.mjs"
+  },
+  "devDependencies": {
+    "@wp-playground/cli": "^3.1.44"
+  }
+}

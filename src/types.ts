@@ -21,25 +21,24 @@ export interface ThumbnailResult {
 	resolutionUnit?: ResolutionUnit; // Resolution unit (e.g., 'inch', 'cm')
 }
 
-// Define the public API of the thumbnailer
+// The public API, as exposed on `window.thumbnailGen`.
 export interface ThumbnailerInterface {
-	ready: Promise<void>;
 	isInitialized(): boolean;
+	isSupported(): boolean;
+	load(): Promise<Worker>;
 	createThumbnail(options: ThumbnailOptions): Promise<ThumbnailResult>;
 }
 
 export interface WorkerRequest {
 	id: string;
 	type: "initialize" | "createThumbnail";
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	payload?: any;
+	payload?: ThumbnailOptions;
 }
 
 export interface WorkerResponse {
 	id: string;
 	type: "ready" | "initialized" | "result" | "error";
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	payload?: any;
+	payload?: ThumbnailResult;
 	error?: string;
 }
 
@@ -48,18 +47,11 @@ export interface UTIFIFD {
 	width?: number;
 	height?: number;
 	data?: ArrayBuffer;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	[key: string]: any;
+	[key: string]: unknown;
 }
 
 export interface UTIFModule {
 	decode(buffer: ArrayBuffer): UTIFIFD[];
 	decodeImage(buffer: ArrayBuffer, ifd: UTIFIFD): void;
 	toRGBA8(ifd: UTIFIFD): Uint8Array;
-}
-
-// WASM module declarations
-declare module "*.wasm" {
-	const src: string;
-	export default src;
 }

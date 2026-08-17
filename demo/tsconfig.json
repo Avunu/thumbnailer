@@ -1,0 +1,13 @@
+{
+	/* Scopes the demo build to demo/. Without it, @rollup/plugin-typescript was
+	   run with `tsconfig: false`, which leaves the program unbounded — it pulled
+	   in every .ts file in the repo, including the worker and the unit tests,
+	   and reported their diagnostics against the demo's own compiler options. */
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		"strict": false,
+		"noUnusedLocals": false,
+		"noUnusedParameters": false
+	},
+	"include": ["*.ts", "../src/global.d.ts", "../src/types.ts"]
+}

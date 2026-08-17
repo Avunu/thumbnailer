@@ -22,36 +22,33 @@ class Thumbnailer {
 				? scriptUrl.replace("thumbnailer.js", "worker.js")
 				: new URL("./worker.js", import.meta.url).href);
 
-		// Initialize the ready promise
-		if (!this.supportsOffscreenCanvas) {
+		if (this.supportsOffscreenCanvas) {
+			this.readyPromise = this.load().then(() => {
+				this.initialized = true;
+			});
+		} else {
 			console.error(
 				"Thumbnailer: OffscreenCanvas is not supported in this browser. Thumbnailer will not be initialized.",
 			);
 			this.readyPromise = Promise.reject(
 				new Error("OffscreenCanvas is not supported in this browser"),
 			);
-		} else {
-			this.readyPromise = this.load().then(() => {
-				this.initialized = true;
-			});
 		}
+
+		// readyPromise is created eagerly but may never be awaited — a page that
+		// only calls isSupported() never touches it. Attaching a terminal handler
+		// here marks the rejection handled, so an unsupported browser gets the
+		// console.error above rather than that plus an unhandled-rejection
+		// report. Anyone who does await readyPromise still sees the rejection.
+		this.readyPromise.catch((err: unknown) => {
+			console.error("Failed to initialize Thumbnailer:", err);
+		});
 
 		if (typeof window !== "undefined") {
 			Object.defineProperty(window, "thumbnailGen", {
 				get: () => this,
 				configurable: false,
 			});
-		}
-
-		// Only initialize if OffscreenCanvas is supported
-		if (this.supportsOffscreenCanvas) {
-			this.load()
-				.then(() => {
-					console.log("Thumbnailer initialized");
-				})
-				.catch((err) => {
-					console.error("Failed to initialize Thumbnailer:", err);
-				});
 		}
 	}
 

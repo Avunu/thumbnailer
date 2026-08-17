@@ -1,0 +1,33 @@
+# Queues Dependabot PRs for auto-merge once the required checks pass.
+#
+# Requires two one-time repository settings:
+#   - Settings > General > Pull Requests > "Allow auto-merge"
+#   - Settings > Branches > protect `main` and require the "Check" statuses
+#
+# Without branch protection, `--auto` merges as soon as GitHub is willing —
+# which, with no required checks, is immediately. The protection rule is what
+# makes this safe rather than a way to land untested dependency bumps.
+
+name: Dependabot auto-merge
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Dependabot metadata
+        uses: dependabot/fetch-metadata@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable auto-merge
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge --auto --squash "$PR_URL"

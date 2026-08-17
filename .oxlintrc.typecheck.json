@@ -1,0 +1,32 @@
+{
+	"$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+	"plugins": ["typescript"],
+	"categories": {
+		"correctness": "off",
+		"perf": "off",
+		"pedantic": "off",
+		"style": "off",
+		"suspicious": "off",
+		"restriction": "off",
+		"nursery": "off"
+	},
+	"ignorePatterns": [
+		"dist",
+		"demo/demo.js",
+		"node_modules",
+		"third-party",
+		"vendor",
+		"**/*.map",
+		"**/*.d.ts",
+		"**/*.mjs"
+	],
+	"rules": {
+		"typescript/no-unsafe-argument": "error",
+		"typescript/no-unsafe-assignment": "error",
+		"typescript/no-unsafe-call": "error",
+		"typescript/no-unsafe-member-access": "error",
+		"typescript/no-unsafe-return": "error",
+		"typescript/no-floating-promises": "error",
+		"typescript/no-misused-promises": "error"
+	}
+}

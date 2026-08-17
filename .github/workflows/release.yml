@@ -1,0 +1,72 @@
+# Cuts a release when a Release Please PR is merged.
+#
+# Release Please watches conventional commits on main and maintains a release
+# PR. Merging it bumps every version location, writes CHANGELOG.md, tags
+# v{version} and creates the GitHub Release. Everything after that step is
+# gated on `release_created`, so an ordinary push to main does nothing.
+#
+# The plugin zip must be attached to the release: plugin-update-checker is
+# configured with enableReleaseAssets(), and GitHub's source tarball carries
+# neither dist/ nor vendor/ — installing it would produce a dead plugin.
+#
+# One-time repository settings this depends on:
+#   - Settings > Actions > General > Workflow permissions:
+#       "Read and write permissions", and
+#       "Allow GitHub Actions to create and approve pull requests"
+#   - Settings > General > Pull Requests: "Allow auto-merge" (for Dependabot)
+
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release Please
+        id: release
+        uses: googleapis/release-please-action@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: .release-please/config.json
+          manifest-file: .release-please/manifest.json
+
+      - uses: actions/checkout@v7
+        if: ${{ steps.release.outputs.release_created }}
+
+      - uses: DeterminateSystems/nix-installer-action@main
+        if: ${{ steps.release.outputs.release_created }}
+
+      - name: Build the plugin zip
+        if: ${{ steps.release.outputs.release_created }}
+        run: nix build .#zip -L
+
+      - name: Attach the zip to the release
+        if: ${{ steps.release.outputs.release_created }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ steps.release.outputs.tag_name }}" result/thumbnailer.zip --clobber
+
+      - name: Set up Node for GitHub Packages
+        if: ${{ steps.release.outputs.release_created }}
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com
+          scope: "@avunu"
+
+      # Published through `nix develop` because the build needs third-party/utif,
+      # which the dev shell symlinks in from the `utif` flake input. A bare
+      # `npm ci && npm publish` on a plain checkout would fail to resolve it.
+      - name: Publish @avunu/thumbnailer
+        if: ${{ steps.release.outputs.release_created }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: nix develop --no-pure-eval --command npm publish
