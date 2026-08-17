@@ -1,30 +1,38 @@
 import { initializeGhostscript, renderPageAsImage } from "./ghostscript";
-import type {
-	ResolutionUnit,
-	ThumbnailResult,
-	WorkerRequest,
-	WorkerResponse,
-	UTIFModule,
-} from "./types";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore - Untyped JS library from vendor folder
-import UTIFImport from "../vendor/utif/UTIF.js";
+import type { ThumbnailResult, WorkerRequest, WorkerResponse, UTIFModule } from "./types";
+import { isPostScriptType, isTiffType } from "./mime";
+import { calculateAspectRatio } from "./geometry";
+import { extractResolution, type ResolutionMetadata } from "./metadata";
+// Untyped JS library. `third-party/utif` is not committed — it is symlinked in
+// from the `utif` flake input by both the Nix derivation's postPatch and the
+// dev shell's shellHook, so `nix build` and `nix develop` resolve the same
+// pinned source. See flake.nix.
+// @ts-expect-error - no type declarations ship with UTIF.js
+import UTIFImport from "../third-party/utif/UTIF.js";
 import ExifReader from "exifreader";
 
 const UTIF = UTIFImport as unknown as UTIFModule;
 
-// Initialize immediately
+// Kick off WASM initialisation as soon as the worker loads, rather than at the
+// first request, and announce `ready` only once it has finished.
+//
+// Note on lint config: `unicorn/require-post-message-target-origin` is disabled
+// repo-wide because of this file. Inside a DedicatedWorkerGlobalScope,
+// self.postMessage() is the worker-to-page channel and takes (message,
+// transfer) — the targetOrigin argument belongs to window.postMessage. Taking
+// the rule's advice would pass an origin string where a transfer list is
+// expected and break every reply.
 initializeGhostscript()
 	.then(() => {
-		// Send ready message only after initialization is complete
 		self.postMessage({ type: "ready", id: "worker" });
 	})
-	.catch((error) => {
+	.catch((error: unknown) => {
 		console.error("Failed to initialize ghostscript:", error);
+		const message = error instanceof Error ? error.message : String(error);
 		self.postMessage({
 			type: "error",
 			id: "worker",
-			error: "Failed to initialize worker: " + error.message,
+			error: `Failed to initialize worker: ${message}`,
 		});
 	});
 
@@ -67,92 +75,29 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 	self.postMessage(response);
 };
 
-function isPostScriptType(mimeType: string): boolean {
-	const psTypes = [
-		"application/postscript",
-		"application/ps",
-		"application/x-eps",
-		"application/x-postscript",
-		"application/x-postscript-not-eps",
-		"application/x-ps",
-		"application/pdf",
-		"image/eps",
-		"image/x-eps",
-		"text/postscript",
-	];
-	return psTypes.includes(mimeType);
-}
-
-function isTiffType(mimeType: string): boolean {
-	const tiffTypes = [
-		"application/tif",
-		"application/tiff",
-		"application/x-tif",
-		"application/x-tiff",
-		"image/tif",
-		"image/tiff",
-		"image/tiff-fx",
-		"image/x-tif",
-		"image/x-tiff",
-	];
-	return tiffTypes.includes(mimeType);
-}
-
-async function extractMetadata(
-	data: Uint8Array,
-	mimeType: string,
-): Promise<{ xResolution?: number; yResolution?: number; resolutionUnit?: ResolutionUnit }> {
-	const metadata: { xResolution?: number; yResolution?: number; resolutionUnit?: ResolutionUnit } =
-		{};
-
-	// Skip metadata extraction for PostScript/PDF types - they don't have EXIF metadata
+async function extractMetadata(data: Uint8Array, mimeType: string): Promise<ResolutionMetadata> {
+	// PostScript/PDF carry no EXIF; Ghostscript's render DPI is supplied instead.
 	if (isPostScriptType(mimeType)) {
-		return metadata;
+		return {};
 	}
 
 	try {
-		// Load tags with ExifReader
-		// Exclude XMP parsing since DOMParser is not available in Web Workers
-		const tags = await ExifReader.load(data.buffer, {
-			async: true,
-			excludeTags: { xmp: true },
-		});
-
-		if (tags) {
-			// Extract resolution info from tags
-			if (tags["XResolution"]?.value) {
-				const value = tags["XResolution"].value;
-				if (Array.isArray(value) && typeof value[0] === "number" && typeof value[1] === "number") {
-					metadata.xResolution = value[0] / value[1];
-				} else if (typeof value === "number") {
-					metadata.xResolution = value;
-				}
-			}
-
-			if (tags["YResolution"]?.value) {
-				const value = tags["YResolution"].value;
-				if (Array.isArray(value) && typeof value[0] === "number" && typeof value[1] === "number") {
-					metadata.yResolution = value[0] / value[1];
-				} else if (typeof value === "number") {
-					metadata.yResolution = value;
-				}
-			}
-
-			if (tags["ResolutionUnit"]?.value) {
-				const unit = tags["ResolutionUnit"].value;
-				metadata.resolutionUnit = unit === 2 ? "inch" : unit === 3 ? "cm" : "none";
-			}
-		}
+		// No `domParser` is passed: DOMParser does not exist in a Web Worker, and
+		// ExifReader skips XMP when it cannot parse XML. (This used to pass an
+		// `excludeTags: {xmp: true}` option, which ExifReader has no such option
+		// for — it was silently ignored, and the excess property broke the
+		// ArrayBuffer overload so the call never typechecked.)
+		const tags = await ExifReader.load(data.buffer as ArrayBuffer, { async: true });
+		return extractResolution(tags);
 	} catch (error) {
 		console.warn(`Failed to extract metadata for ${mimeType}:`, error);
+		return {};
 	}
-
-	return metadata;
 }
 
 async function convertTiffToJpeg(data: Uint8Array): Promise<{
 	jpegData: Uint8Array;
-	metadata: { xResolution?: number; yResolution?: number; resolutionUnit?: ResolutionUnit };
+	metadata: ResolutionMetadata;
 }> {
 	try {
 		// Decode TIFF file
@@ -169,7 +114,7 @@ async function convertTiffToJpeg(data: Uint8Array): Promise<{
 			UTIF.decodeImage(data.buffer as ArrayBuffer, ifds[0]);
 		} catch (err) {
 			console.error("Error decoding TIFF image:", err);
-			throw new Error("Failed to decode TIFF image data");
+			throw new Error("Failed to decode TIFF image data", { cause: err });
 		}
 
 		// Check if image data was actually decoded
@@ -214,6 +159,7 @@ async function convertTiffToJpeg(data: Uint8Array): Promise<{
 		console.error("TIFF conversion error:", error);
 		throw new Error(
 			`Failed to convert TIFF: ${error instanceof Error ? error.message : String(error)}`,
+			{ cause: error },
 		);
 	}
 }
@@ -223,26 +169,13 @@ async function createImageFromData(data: Uint8Array, mimeType: string): Promise<
 	return await createImageBitmap(blob);
 }
 
-function calculateAspectRatio(
-	srcWidth: number,
-	srcHeight: number,
-	targetWidth: number,
-): { width: number; height: number } {
-	const ratio = targetWidth / srcWidth;
-	return {
-		width: targetWidth,
-		height: Math.round(srcHeight * ratio),
-	};
-}
-
 async function createThumbnail(
 	data: Uint8Array,
 	mimeType: string,
 	maxWidth: number,
 ): Promise<ThumbnailResult> {
 	let sourceBitmap: ImageBitmap;
-	let metadata: { xResolution?: number; yResolution?: number; resolutionUnit?: ResolutionUnit } =
-		{};
+	let metadata: ResolutionMetadata = {};
 
 	// Convert TIFF/PostScript to JPEG if needed
 	if (isPostScriptType(mimeType)) {

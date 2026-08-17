@@ -1,0 +1,164 @@
+# Pull-request and main-branch checks.
+#
+# Filtering happens per *job*, via a `changes` job the others depend on, rather
+# than with `on.push.paths` at the workflow level. That distinction matters: a
+# workflow suppressed by a path filter never reports a status at all, so the
+# moment any of these becomes a required check, every PR that does not touch
+# that path waits forever for a status that will never arrive. A job skipped by
+# `if:` still reports, and GitHub counts it as satisfied.
+#
+# Nearly every job is a single `nix build`, and every one of those runs offline
+# in the sandbox — the same command reproduces it exactly on a laptop. The one
+# exception is `playground`, which needs the network; see its comment.
+
+name: Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      assets: ${{ steps.filter.outputs.assets }}
+      php: ${{ steps.filter.outputs.php }}
+      package: ${{ steps.filter.outputs.package }}
+    steps:
+      # fetch-depth: 0 because on `push` the filter diffs against the previous
+      # commit rather than a merge base.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          # Each group includes this workflow so a CI change re-validates
+          # everything, and flake.* because the toolchain pins affect every job.
+          filters: |
+            assets:
+              - 'src/**'
+              - 'tests/unit/**'
+              - 'tests/browser/**'
+              - 'demo/**'
+              - 'scripts/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'tsconfig*.json'
+              - 'rollup.config.mjs'
+              - 'vitest.config.ts'
+              - 'playwright.config.ts'
+              - '.oxlintrc.json'
+              - '.oxlintrc.typecheck.json'
+              - '.oxfmtrc.json'
+              - 'flake.nix'
+              - 'flake.lock'
+              - '.github/workflows/check.yml'
+            php:
+              - 'thumbnailer.php'
+              - 'src/php/**'
+              - 'tests/php/**'
+              - 'composer.json'
+              - 'composer.lock'
+              - 'phpstan.neon.dist'
+              - 'phpstan-bootstrap.php'
+              - 'phpunit.xml.dist'
+              - 'readme.txt'
+              - 'flake.nix'
+              - 'flake.lock'
+              - '.github/workflows/check.yml'
+            package:
+              - 'src/**'
+              - 'thumbnailer.php'
+              - 'readme.txt'
+              - 'composer.*'
+              - 'package*.json'
+              - 'rollup.config.mjs'
+              - 'tests/playground/**'
+              - 'flake.nix'
+              - 'flake.lock'
+              - '.github/workflows/check.yml'
+
+  static:
+    name: static (format, lint, types, versions)
+    needs: changes
+    if: needs.changes.outputs.assets == 'true' || needs.changes.outputs.php == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: DeterminateSystems/nix-installer-action@main
+      - run: nix build .#checks.x86_64-linux.static -L
+
+  vitest:
+    needs: changes
+    if: needs.changes.outputs.assets == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: DeterminateSystems/nix-installer-action@main
+      - run: nix build .#checks.x86_64-linux.vitest -L
+
+  browser:
+    name: browser (Playwright + Ghostscript-WASM)
+    needs: changes
+    if: needs.changes.outputs.assets == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: DeterminateSystems/nix-installer-action@main
+      # Browsers come from the Nix store via PLAYWRIGHT_BROWSERS_PATH, so there
+      # is no `playwright install` step and no download at test time.
+      - run: nix build .#checks.x86_64-linux.browser -L
+
+  phpstan:
+    needs: changes
+    if: needs.changes.outputs.php == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: DeterminateSystems/nix-installer-action@main
+      - run: nix build .#checks.x86_64-linux.phpstan -L
+
+  phpunit:
+    needs: changes
+    if: needs.changes.outputs.php == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: DeterminateSystems/nix-installer-action@main
+      - run: nix build .#checks.x86_64-linux.phpunit -L
+
+  playground:
+    name: playground (real WordPress)
+    needs: changes
+    if: needs.changes.outputs.package == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Build the release zip
+        run: nix build .#zip -L
+
+      # The one deliberately impure job: @wp-playground/cli downloads WordPress
+      # and php.wasm from a CDN at run time, so it cannot live in a sandboxed
+      # `nix build`. It runs inside `nix develop`, which has network access.
+      - name: Boot WordPress against the built zip
+        run: |
+          nix develop --no-pure-eval --command bash -c '
+            npm --prefix tests/playground ci
+            node tests/playground/run.mjs
+          '
+
+      - name: Upload the plugin zip
+        uses: actions/upload-artifact@v7
+        with:
+          name: thumbnailer-zip
+          path: result/thumbnailer.zip
+          if-no-files-found: error

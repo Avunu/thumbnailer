@@ -5,25 +5,25 @@ type GSModule = Awaited<ReturnType<typeof initGS>>;
 let gsModule: GSModule | null = null;
 let initPromise: Promise<GSModule> | null = null;
 
-export async function initializeGhostscript(): Promise<GSModule> {
+export function initializeGhostscript(): Promise<GSModule> {
 	if (gsModule) {
-		return gsModule;
+		return Promise.resolve(gsModule);
 	}
 
-	if (!initPromise) {
-		initPromise = (async () => {
-			try {
-				console.log("Initializing GhostScript WASM module...");
-				const module = await initGS();
-				gsModule = module;
-				console.log("GhostScript initialized successfully");
-				return module;
-			} catch (error) {
-				console.error("Failed to initialize GhostScript:", error);
-				throw error;
-			}
-		})();
-	}
+	// Memoised: instantiating the 18 MB WASM module twice would double both the
+	// compile cost and the worker's memory footprint.
+	initPromise ??= (async () => {
+		try {
+			console.log("Initializing GhostScript WASM module...");
+			const module = await initGS();
+			gsModule = module;
+			console.log("GhostScript initialized successfully");
+			return module;
+		} catch (error) {
+			console.error("Failed to initialize GhostScript:", error);
+			throw error;
+		}
+	})();
 
 	return initPromise;
 }

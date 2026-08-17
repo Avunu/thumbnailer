@@ -1,120 +1,175 @@
 # Thumbnailer
 
-A WordPress plugin that makes a JavaScript thumbnail generation library available on selected pages.
+A WordPress plugin that makes a client-side thumbnail generation library available on selected posts and pages.
+
+Everything happens in the browser. Ghostscript is compiled to WebAssembly for PDF and PostScript, UTIF.js decodes TIFF, and `OffscreenCanvas` does the resizing and JPEG encoding — all off the main thread in a Web Worker. There is no server-side image processing and no external service.
 
 ## Purpose
 
-This plugin loads the Thumbnailer JavaScript library on specific WordPress posts/pages that you configure. Once loaded, the library can be called by other scripts via its API to generate thumbnails from various file formats including PDF, PostScript, and common image formats.
+The plugin loads the Thumbnailer library on the WordPress posts and pages you configure. Once loaded, other scripts on those pages can call its API to generate thumbnails from PDF, PostScript, TIFF and common image formats.
 
 ## Features
 
-- Selectively load the Thumbnailer library on specific WordPress posts/pages
-- Easy configuration through WordPress admin interface
-- Makes the AGPL worker available for client-side thumbnail generation
-- Non-blocking thumbnail processing via Web Workers
-- Support for PDF, PostScript, TIFF and standard image formats
+- Loads the library only on the posts and pages you opt in
+- Configured from the WordPress admin, no code required
+- Non-blocking: decoding and encoding happen in a Web Worker
+- PDF, PostScript, TIFF, PNG, JPEG and anything else `createImageBitmap` accepts
+- Self-updating from GitHub releases — no wordpress.org listing required
 
-## Browser Compatibility
+## Requirements
 
-Thumbnailer requires a browser that supports the `OffscreenCanvas` API. This includes:
-- Chrome 69+
-- Edge 79+
-- Firefox 46+
-- Opera 56+
+- WordPress 6.5 or later (the plugin uses `wp_enqueue_script_module()`, added in 6.5)
+- PHP 8.1 or later
 
-Safari has limited support as of recent versions. The library will detect compatibility and fail gracefully if not supported.
+### Browser compatibility
 
-## WordPress Plugin Usage
+Two features set the floor, and the more restrictive one is module Web Workers:
 
-1. Install and activate the plugin
-2. Go to Settings > Thumbnailer
-3. Enter the comma-separated IDs of posts/pages where you want the Thumbnailer to be available
-4. Save your settings
+| Feature | Chrome | Firefox | Safari |
+| --- | --- | --- | --- |
+| `OffscreenCanvas.convertToBlob` | 76 | 105 | 16.4 |
+| Module Web Workers | 80 | 114 | 15 |
+
+So in practice: **Chrome/Edge 80+, Firefox 114+, Safari 16.4+**. The library detects support and fails gracefully everywhere else — `window.thumbnailGen.isSupported()` returns `false` and `createThumbnail()` rejects rather than hanging.
+
+## Installation
+
+Download `thumbnailer.zip` from the [latest release](https://github.com/Avunu/thumbnailer/releases/latest) and upload it via **Plugins → Add New → Upload Plugin**.
+
+The zip bundles both the built JavaScript and the Composer dependencies, so no build step is needed on the server. It is around 19 MB, almost entirely the Ghostscript WebAssembly module; if your host caps `upload_max_filesize` below that, install it over SSH or let the auto-updater fetch it instead.
+
+Do not install from a `git clone` or GitHub's source tarball. Neither contains `dist/` or `vendor/`, and the result is a plugin that fatals on activation.
+
+### Updates
+
+The plugin checks its own GitHub releases and offers updates on the normal Plugins screen, using [plugin-update-checker](https://github.com/YahnisElsts/plugin-update-checker). It downloads the attached `thumbnailer.zip` release asset rather than the source tarball.
+
+## Usage
+
+1. Install and activate the plugin.
+2. Go to **Settings → Thumbnailer**.
+3. Enter the comma-separated IDs of the posts or pages that should load the library.
+4. Save.
 
 ## JavaScript API
 
-Once the Thumbnailer script is loaded on a page, you can use it in your JavaScript as follows:
+Once loaded, the library is available as `window.thumbnailGen`:
 
 ```javascript
-// First check if the browser is supported
-if (window.thumbnailGen && window.thumbnailGen.isSupported()) {
-  // Create a thumbnail
-  const fileData = new Uint8Array(await fetch('example.pdf').then(r => r.arrayBuffer()));
+if (window.thumbnailGen?.isSupported()) {
+  const fileData = new Uint8Array(await fetch("example.pdf").then((r) => r.arrayBuffer()));
+
   const thumbnail = await window.thumbnailGen.createThumbnail({
     file: fileData,
-    filename: 'example.pdf',
-    mimeType: 'application/pdf',
-    maxWidth: 300
+    filename: "example.pdf",
+    mimeType: "application/pdf",
+    maxWidth: 300,
   });
 
-  // Use the thumbnail
   const blob = new Blob([thumbnail.image], { type: thumbnail.mimeType });
-  const imageUrl = URL.createObjectURL(blob);
-  document.getElementById('preview').src = imageUrl;
+  document.getElementById("preview").src = URL.createObjectURL(blob);
 } else {
-  console.warn('Thumbnailer is not supported in this browser');
-  // Provide a fallback here if needed
+  console.warn("Thumbnailer is not supported in this browser");
 }
 ```
 
-### API Reference
+### `thumbnailGen.isSupported(): boolean`
 
-#### `workerLoader.initialize()`
+Whether this browser has the features the library needs. Check it before anything else.
 
-Initializes the worker and prepares it for processing files.
+### `thumbnailGen.isInitialized(): boolean`
 
-Returns: `Promise<void>`
+Whether the worker has finished instantiating Ghostscript. `createThumbnail()` waits for this on its own, so you rarely need it.
 
-#### `workerLoader.createThumbnail(options)`
+### `thumbnailGen.createThumbnail(options): Promise<ThumbnailResult>`
 
-Creates a thumbnail from the provided file.
+| Option | Type | Meaning |
+| --- | --- | --- |
+| `file` | `Uint8Array \| File` | The source file |
+| `filename` | `string` | Used only for diagnostics |
+| `mimeType` | `string` | Selects the decode path; a `; charset=…` parameter is ignored |
+| `maxWidth` | `number` | Target width — note the result is scaled *to* this width, so a smaller source is enlarged |
 
-Parameters:
-- `options` (Object):
-  - `file` (Uint8Array): The file data as a binary array
-  - `filename` (string): Filename with extension
-  - `mimeType` (string): MIME type of the file
-  - `maxWidth` (number): Maximum width for the generated thumbnail
-
-Returns: `Promise<ThumbnailResult>` where `ThumbnailResult` is:
 ```typescript
-{
-  image: Uint8Array; // Thumbnail image data
-  mimeType: string;  // Output MIME type (typically 'image/jpeg')
-  width: number;     // Thumbnail width
-  height: number;    // Thumbnail height
-  xResolution?: number;  // X-resolution in DPI
-  yResolution?: number;  // Y-resolution in DPI
-  resolutionUnit?: string; // Resolution unit (e.g., 'inch', 'cm')
+interface ThumbnailResult {
+  image: Uint8Array;     // JPEG bytes
+  mimeType: string;      // always "image/jpeg"
+  sourceWidth: number;   // decoded source dimensions
+  sourceHeight: number;
+  width: number;         // thumbnail dimensions
+  height: number;
+  xResolution?: number;  // from EXIF, or 150 for PDF/PostScript
+  yResolution?: number;
+  resolutionUnit?: "inch" | "cm" | "none";
 }
 ```
 
-#### `thumbnailGen.isSupported()`
+Rejects if the browser is unsupported or the file cannot be decoded. A rejected request does not wedge the worker — subsequent calls still work.
 
-Checks if the current browser supports the required features for Thumbnailer.
+## npm package
 
-Returns: `boolean`
+The same library is published to GitHub Packages as [`@avunu/thumbnailer`](https://github.com/Avunu/thumbnailer/pkgs/npm/thumbnailer), versioned in lockstep with the plugin.
+
+```bash
+echo "@avunu:registry=https://npm.pkg.github.com" >> .npmrc
+npm install @avunu/thumbnailer
+```
+
+The package ships `dist/` only, including `gs.wasm`, so the tarball is around 19 MB. `dist/worker.js` must be served alongside `dist/thumbnailer.js` — the library resolves it relative to its own module URL.
 
 ## Development
 
-### Setup
+The toolchain is managed entirely by Nix. There is no `npm install` step:
 
 ```bash
-git clone https://github.com/Avunu/thumbnailer.git
-cd thumbnailer
-npm install
+nix develop
 ```
 
-### Scripts
+That gives you a shell with `node_modules` linked from the lockfile, `third-party/utif` symlinked from the pinned flake input, PHP with Composer and PHPStan, and Playwright with its browsers — plus git hooks installed at the `pre-push` stage.
 
-- `npm run dev` - Start development server
-- `npm run build` - Build library for production
-- `npm run build:demo` - Build demo app
-- `npm run build:wp` - Build WordPress plugin
-- `npm run build:all` - Build both demo app and WordPress plugin
-- `npm run build:zip` - Build and zip WordPress plugin
-- `npm run preview` - Preview production build locally
+`third-party/utif` is **not** in git. UTIF.js used to be a submodule; it is now the `utif` flake input, symlinked into place by both the dev shell and every derivation, so `nix build` and `nix develop` can never resolve different sources. Dependabot's `nix` ecosystem keeps the pin current. A plain `git clone && npm install` will not build — use `nix develop`.
+
+### Everyday commands
+
+| Command | What it does |
+| --- | --- |
+| `npm run build` | Emits `dist/` — declarations, both bundles, the worker, and `gs.wasm` |
+| `npm run build:demo` | Builds `demo/demo.js` (opt-in, so `npm run build` never dirties the tree) |
+| `npm run check` | oxfmt, oxlint, type-aware oxlint, `tsc`, and the version-consistency gate |
+| `npm test` | Vitest unit tests |
+| `npm run test:browser` | Playwright, against the built `dist/` |
+| `nix build .#zip` | Produces `result/thumbnailer.zip` |
+
+### Tests
+
+Six tiers, each runnable as the exact command CI runs:
+
+| Tier | Command | Covers |
+| --- | --- | --- |
+| static | `nix build .#checks.x86_64-linux.static` | Formatting, lint, types, version consistency |
+| phpstan | `nix build .#checks.x86_64-linux.phpstan` | Level 8, WordPress-aware, analysed against PHP 8.1 |
+| phpunit | `nix build .#checks.x86_64-linux.phpunit` | The plugin class, against an in-memory WordPress fake |
+| vitest | `nix build .#checks.x86_64-linux.vitest` | MIME routing, geometry, EXIF mapping, worker correlation |
+| browser | `nix build .#checks.x86_64-linux.browser` | Real Ghostscript-WASM, UTIF, Worker and OffscreenCanvas |
+| playground | `nix develop -c node tests/playground/run.mjs` | Real WordPress against the built zip |
+
+`nix flake check` runs the first five. Every one is offline and hermetic — browsers come from the Nix store, so there is no `playwright install`.
+
+The playground tier is the exception and is not part of `nix flake check`: `@wp-playground/cli` downloads WordPress and `php.wasm` at run time, so it needs the network. It lives in `tests/playground/` with its own lockfile, keeping those 250-odd dependencies out of the lockfile the Nix build consumes. Build the zip first:
+
+```bash
+nix build .#zip
+nix develop -c bash -c 'npm --prefix tests/playground ci && node tests/playground/run.mjs'
+```
+
+Browser test fixtures are committed and regenerated by `node scripts/make-fixtures.mjs`, which documents the exact dimensions and resolution tags the tests assert on.
+
+## Releasing
+
+Release Please watches conventional commits on `main` and maintains a release PR. Merging it bumps the version everywhere, writes `CHANGELOG.md`, tags `v{version}`, creates the GitHub Release, attaches the Nix-built `thumbnailer.zip`, and publishes `@avunu/thumbnailer` to GitHub Packages.
+
+`package.json` is the single source of truth for the version. It is propagated to `composer.json`, the plugin header, the `THUMBNAILER_VERSION` constant and `readme.txt`, and re-stamped into the shipped copies at build time from `flake.nix`. `scripts/check-versions.mjs` fails the build if any of them drift, and runs as part of `npm run check`.
 
 ## License
 
-The Thumbnailer WordPress plugin and underlying JavaScript worker is licensed under AGPL.
+AGPL-3.0-only. The bundled Ghostscript WebAssembly build is AGPL-3.0-only, which sets the license for the whole distribution.

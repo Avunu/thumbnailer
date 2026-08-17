@@ -1,0 +1,9 @@
+{
+	/* Exists so `oxlint --type-aware` can resolve these files. tsgolint picks the
+	   nearest tsconfig.json, which without this is the repo root one — and that
+	   program deliberately excludes tests/browser, leaving every symbol here
+	   typed as `error`. The compilerOptions come from the Node program, which is
+	   what `npm run typecheck` uses for these same files. */
+	"extends": "../../tsconfig.node.json",
+	"include": ["**/*.ts", "**/*.mjs", "../../src/global.d.ts", "../../src/types.ts"]
+}

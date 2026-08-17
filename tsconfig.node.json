@@ -1,0 +1,38 @@
+{
+	/* Node-side tooling: build config, test runners, helper scripts. Kept apart
+     from tsconfig.json so the browser program can run with `"types": []` and no
+     Node globals leaking into the shipped library.
+
+     DOM is in `lib` here despite this being the Node program: Playwright specs
+     are Node modules whose page.evaluate() callbacks are browser code, so the
+     one file legitimately needs both. src/global.d.ts is pulled in for the
+     `window.thumbnailGen` augmentation those callbacks rely on. */
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"types": ["node"],
+		"moduleResolution": "bundler",
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"moduleDetection": "force",
+		"verbatimModuleSyntax": true,
+		"allowJs": true,
+		"checkJs": false,
+		"noEmit": true,
+		"strict": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noFallthroughCasesInSwitch": true
+	},
+	"include": [
+		"rollup.config.mjs",
+		"playwright.config.ts",
+		"vitest.config.ts",
+		"scripts/**/*.mjs",
+		"tests/browser/**/*.ts",
+		"tests/browser/**/*.mjs",
+		"src/global.d.ts",
+		"src/types.ts"
+	]
+}

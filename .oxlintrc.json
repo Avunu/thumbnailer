@@ -1,0 +1,51 @@
+{
+	"$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+	"plugins": ["import", "unicorn", "oxc", "typescript"],
+	"categories": {
+		"correctness": "error",
+		"suspicious": "error",
+		"perf": "error",
+		"pedantic": "error",
+		"style": "off",
+		"restriction": "off",
+		"nursery": "off"
+	},
+	"ignorePatterns": [
+		"dist",
+		"demo/demo.js",
+		"node_modules",
+		"third-party",
+		"vendor",
+		"**/*.map",
+		"**/*.d.ts"
+	],
+	"rules": {
+		"no-console": "off",
+		"unicorn/prefer-global-this": "off",
+		"unicorn/require-post-message-target-origin": "off",
+		"unicorn/prefer-add-event-listener": "off",
+		"unicorn/prefer-top-level-await": "off",
+		"import/no-named-as-default-member": "off",
+		"max-lines-per-function": "off",
+		"no-inline-comments": "off"
+	},
+	"overrides": [
+		{
+			"files": [
+				"rollup.config.mjs",
+				"vitest.config.ts",
+				"playwright.config.ts",
+				"scripts/**",
+				"tests/**"
+			],
+			"rules": {
+				"import/no-nodejs-modules": "off",
+				"import/no-default-export": "off",
+				"unicorn/consistent-function-scoping": "off",
+				"unicorn/no-useless-undefined": "off",
+				"unicorn/prefer-at": "off",
+				"typescript/no-extraneous-class": "off"
+			}
+		}
+	]
+}

@@ -1,0 +1,64 @@
+# All five ecosystems this repo actually depends on, each grouped into a single
+# PR so a day's bumps arrive as one review rather than a dozen.
+#
+# The `chore` prefix is deliberate: Release Please cuts a release from `fix:`
+# and `feat:` commits, so dependency bumps must never trigger one on their own.
+#
+# The `nix` entry is what makes deleting the vendor/utif git submodule work.
+# UTIF.js is now a flake input, so flake.lock is the single pin for it — no
+# gitsubmodule entry and no bespoke update workflow, and it rides the same
+# daily, grouped, auto-merged cadence as everything else.
+
+version: 2
+updates:
+  - package-ecosystem: nix
+    directory: /
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: chore
+    groups:
+      nix:
+        patterns: ["*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: chore
+    groups:
+      github-actions:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: chore
+    groups:
+      npm:
+        patterns: ["*"]
+
+  # Kept apart from the root package so @wp-playground/cli and its 250-odd
+  # transitive dependencies never enter the lockfile the Nix build consumes.
+  - package-ecosystem: npm
+    directory: /tests/playground
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: chore
+    groups:
+      playground:
+        patterns: ["*"]
+
+  - package-ecosystem: composer
+    directory: /
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: chore
+    groups:
+      composer:
+        patterns: ["*"]
