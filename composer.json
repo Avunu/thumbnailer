@@ -2,7 +2,7 @@
     "name": "avunu/thumbnailer",
     "description": "Makes the Thumbnailer client-side thumbnail library available on selected WordPress posts and pages.",
     "type": "wordpress-plugin",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "license": "AGPL-3.0-only",
     "require": {
         "php": ">=8.1",

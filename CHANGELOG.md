@@ -4,6 +4,13 @@ Maintained by [Release Please](https://github.com/googleapis/release-please) fro
 conventional commits. Entries below 1.0.4 predate the automated release pipeline
 and are reconstructed from git history.
 
+## [1.1.1](https://github.com/Avunu/thumbnailer/compare/thumbnailer-v1.1.0...thumbnailer-v1.1.1) (2026-08-18)
+
+
+### Bug Fixes
+
+* resolve the worker as a sibling instead of rewriting the filename ([204f74d](https://github.com/Avunu/thumbnailer/commit/204f74db3234c3cd26de78427a8b6d371c14f2c2))
+
 ## [1.1.0](https://github.com/Avunu/thumbnailer/compare/thumbnailer-v1.0.3...thumbnailer-v1.1.0) (2026-08-18)
 
 
