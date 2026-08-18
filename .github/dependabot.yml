@@ -40,15 +40,6 @@ updates:
     groups:
       npm:
         patterns: ["*"]
-    ignore:
-      # @rollup/plugin-typescript 12.3.0 does not support TypeScript 7: its
-      # bundled .d.ts references type exports TS 7 restructured, and at run time
-      # it reads ts.ScriptTarget.ES2015, which TS 7 no longer exposes, so rollup
-      # dies loading the config. Held at 6 until the plugin supports 7 — or
-      # until the build moves to a bundler with native TS support, as
-      # wordpress-jwt-auth did with rolldown. Remove this entry then.
-      - dependency-name: typescript
-        update-types: ["version-update:semver-major"]
 
   # Kept apart from the root package so @wp-playground/cli and its 250-odd
   # transitive dependencies never enter the lockfile the Nix build consumes.

@@ -35,9 +35,9 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && rollup -c",
-    "build:demo": "BUILD_DEMO=1 rollup -c",
-    "dev": "rollup -c -w",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && rolldown -c rolldown.config.ts",
+    "build:demo": "BUILD_DEMO=1 rolldown -c rolldown.config.ts",
+    "dev": "rolldown -c rolldown.config.ts --watch",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
@@ -55,20 +55,14 @@
   "devDependencies": {
     "@playwright/test": "1.62.1",
     "@privyid/ghostscript": "0.1.0-alpha.1",
-    "@rollup/plugin-commonjs": "^29.0.3",
-    "@rollup/plugin-node-resolve": "^16.0.3",
-    "@rollup/plugin-typescript": "^12.3.0",
-    "@rollup/plugin-wasm": "^6.2.2",
     "@types/node": "^26.2.0",
     "exifreader": "^4.43.0",
     "jsdom": "^30.0.1",
     "oxfmt": "0.63.0",
     "oxlint": "1.78.0",
     "oxlint-tsgolint": "7.0.2001",
-    "rollup": "^4.62.4",
-    "rollup-plugin-copy": "^3.5.0",
-    "tslib": "^2.8.1",
-    "typescript": "^6.0.2",
+    "rolldown": "^1.2.4",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   }
 }

@@ -1,7 +1,8 @@
 {
 	/* Emits the .d.ts tree for the published npm package — package.json's
      "types" field points at the dist/thumbnailer.d.ts this produces. Runtime
-     JavaScript comes from rollup; this pass emits declarations only. */
+     JavaScript comes from Rolldown; this pass emits declarations only, and
+     doubles as the typecheck gate on src/ for `npm run build`. */
 	"extends": "./tsconfig.json",
 	"compilerOptions": {
 		"noEmit": false,
