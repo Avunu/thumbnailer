@@ -22,12 +22,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch Dependabot metadata
+        id: metadata
         uses: dependabot/fetch-metadata@v3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Enable auto-merge
+      # Majors are excluded deliberately, and this is not belt-and-braces for
+      # branch protection — it addresses a distinct failure. Dependencies are
+      # grouped into one PR per ecosystem, so a single major can ride along with
+      # a dozen patches and get merged on the strength of the patches. That is
+      # exactly how a TypeScript 6 -> 7 bump landed and broke the build in #4.
+      # A major still opens a PR; it just has to be looked at by a person.
+      - name: Enable auto-merge for non-major updates
+        if: ${{ steps.metadata.outputs.update-type != 'version-update:semver-major' }}
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh pr merge --auto --squash "$PR_URL"
+
+      - name: Explain why a major was left alone
+        if: ${{ steps.metadata.outputs.update-type == 'version-update:semver-major' }}
+        run: |
+          echo "::notice::Major update (${{ steps.metadata.outputs.dependency-names }}) — not auto-merged. Review and merge by hand."

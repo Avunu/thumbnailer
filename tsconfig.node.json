@@ -12,6 +12,13 @@
 		"module": "ESNext",
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
 		"types": ["node"],
+		/* As in tsconfig.json. This config is standalone rather than extending
+		   it, so the setting has to be repeated — and omitting it meant this
+		   program typechecked its dependencies' own .d.ts files. That is not
+		   ours to police: @rollup/plugin-typescript ships types referencing
+		   TypeScript exports that TypeScript 7 restructured, so a routine
+		   Dependabot bump broke the build on a file we do not own. */
+		"skipLibCheck": true,
 		"moduleResolution": "bundler",
 		"resolveJsonModule": true,
 		"isolatedModules": true,
