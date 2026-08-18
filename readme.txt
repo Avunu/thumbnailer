@@ -5,7 +5,7 @@ Requires at least: 6.5
 Tested up to: 6.9
 Requires PHP: 8.1
 x-release-please-start-version
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 x-release-please-end
 License: AGPL-3.0-only
 License URI: https://www.gnu.org/licenses/agpl-3.0.html
