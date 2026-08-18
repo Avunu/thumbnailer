@@ -65,8 +65,19 @@ jobs:
       # Published through `nix develop` because the build needs third-party/utif,
       # which the dev shell symlinks in from the `utif` flake input. A bare
       # `npm ci && npm publish` on a plain checkout would fail to resolve it.
+      #
+      # `npm ci` is not redundant with the dev shell: the shell supplies the
+      # toolchain and the utif symlink, never node_modules. Without it the
+      # prepublishOnly build ran against an empty tree and tsc failed on the
+      # first bare-specifier import it hit (@privyid/ghostscript, exifreader).
+      # It got as far as running at all only because a `tsc` further up $PATH
+      # stood in for the missing node_modules/.bin one.
       - name: Publish @avunu/thumbnailer
         if: ${{ steps.release.outputs.release_created }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: nix develop --no-pure-eval --command npm publish
+        run: |
+          nix develop --no-pure-eval --command bash -c '
+            npm ci
+            npm publish
+          '
