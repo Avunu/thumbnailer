@@ -25,9 +25,9 @@
 		"allowJs": false,
 
 		/* This program is typecheck-only. Declarations for the published package
-       are emitted by tsconfig.build.json; letting @rollup/plugin-typescript
-       emit them from here put .d.ts files in both dist/ and dist/src/ and made
-       rollup reject the derived outDir outright. */
+       are emitted by tsconfig.build.json. Rolldown transpiles TypeScript but
+       never typechecks it, so `tsc` is the only thing standing between a type
+       error and a shipped build — which is why the build script runs it. */
 		"noEmit": true,
 
 		/* Linting */

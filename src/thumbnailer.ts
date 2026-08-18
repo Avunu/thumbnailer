@@ -13,14 +13,20 @@ class Thumbnailer {
 		// Check if OffscreenCanvas is supported
 		this.supportsOffscreenCanvas = typeof OffscreenCanvas !== "undefined";
 
+		// Resolve worker.js as a sibling of whichever URL located this script:
+		// document.currentScript in a classic <script>, which is how the UMD
+		// bundle loads, and import.meta.url in a module, which is how the ESM
+		// bundle loads — wp_enqueue_script_module() emits <script type="module">,
+		// where currentScript is null.
+		//
+		// Deliberately not a string replace of "thumbnailer.js". That did nothing
+		// at all for thumbnailer.umd.js, whose filename does not contain that
+		// substring, so the UMD build passed its own URL to new Worker() and
+		// spawned the library as its own worker.
 		const scriptUrl =
 			document.currentScript instanceof HTMLScriptElement ? document.currentScript.src : undefined;
 
-		this.workerUrl =
-			workerUrl ||
-			(scriptUrl
-				? scriptUrl.replace("thumbnailer.js", "worker.js")
-				: new URL("./worker.js", import.meta.url).href);
+		this.workerUrl = workerUrl || new URL("./worker.js", scriptUrl ?? import.meta.url).href;
 
 		if (this.supportsOffscreenCanvas) {
 			this.readyPromise = this.load().then(() => {

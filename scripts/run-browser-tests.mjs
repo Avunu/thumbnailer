@@ -16,7 +16,7 @@ import { spawnSync } from "node:child_process";
 
 // Bumping this when tests are added is the point: it turns "the suite shrank"
 // into a failure rather than a thing nobody notices.
-const MINIMUM_TESTS = 12;
+const MINIMUM_TESTS = 16;
 
 function playwright(args) {
 	return spawnSync("playwright", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
