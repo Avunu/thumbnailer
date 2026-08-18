@@ -44,6 +44,20 @@ const INDEX = `<!doctype html>
 </html>
 `;
 
+// The UMD bundle, loaded the way a UMD consumer loads it: a classic <script>,
+// where document.currentScript is set and import.meta.url does not exist. That
+// is a different worker-URL code path from the module build, and it had no
+// coverage at all until the Rolldown migration — which is why it was broken in
+// two independent ways at once.
+const INDEX_UMD = `<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Thumbnailer UMD browser tests</title></head>
+<body>
+<script src="/dist/thumbnailer.umd.js"></script>
+</body>
+</html>
+`;
+
 const server = createServer((req, res) => {
 	const url = new URL(req.url ?? "/", `http://${HOST}:${PORT}`);
 	const pathname = decodeURIComponent(url.pathname);
@@ -57,6 +71,12 @@ const server = createServer((req, res) => {
 	if (pathname === "/" || pathname === "/index.html") {
 		res.writeHead(200, { "content-type": MIME[".html"] });
 		res.end(INDEX);
+		return;
+	}
+
+	if (pathname === "/umd") {
+		res.writeHead(200, { "content-type": MIME[".html"] });
+		res.end(INDEX_UMD);
 		return;
 	}
 
