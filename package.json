@@ -1,6 +1,6 @@
 {
   "name": "@avunu/thumbnailer",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "Client-side thumbnail generation for PDF, PostScript, TIFF and common image formats, using Ghostscript-WASM and OffscreenCanvas in a Web Worker.",
   "license": "AGPL-3.0-only",
   "type": "module",

@@ -5,7 +5,7 @@
  * Plugin URI:        https://github.com/Avunu/thumbnailer
  * Description:       Makes the Thumbnailer client-side thumbnail library (PDF, PostScript, TIFF and common images) available on selected posts and pages.
  * x-release-please-start-version
- * Version:           1.0.3
+ * Version:           1.1.0
  * x-release-please-end
  * Author:            Avunu LLC
  * Author URI:        https://avu.nu
@@ -28,7 +28,7 @@ defined('ABSPATH') || exit;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-define('THUMBNAILER_VERSION', '1.0.3'); // x-release-please-version
+define('THUMBNAILER_VERSION', '1.1.0'); // x-release-please-version
 define('THUMBNAILER_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('THUMBNAILER_PLUGIN_URL', plugin_dir_url(__FILE__));
 
