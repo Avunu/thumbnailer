@@ -44,16 +44,16 @@ describe("Thumbnailer in a capable browser", () => {
 		// import.meta.url rather than deriving the path from a script element.
 		expect(document.currentScript).toBeNull();
 
-		// Vite rewrites `new URL(..., import.meta.url)` at transform time and
-		// resolves the specifier against the *source* tree, so the extension
-		// here is .ts rather than the .js the shipped bundle requests. What this
-		// tier can prove is that a null currentScript still yields an absolute
-		// sibling URL rather than "undefined" or a relative fragment; that the
-		// built bundle finds the real dist/worker.js is asserted against a live
-		// browser in tests/browser/thumbnail.spec.ts.
+		// The URL is resolved as a sibling of the module, so it is absolute and
+		// ends in worker.js. It used to be asserted loosely as `worker.(js|ts)`
+		// against an http:// origin, because Vite recognised the literal
+		// `new URL("./worker.js", import.meta.url)` pattern and rewrote it to
+		// point at the source tree. Threading the currentScript fallback through
+		// the same expression stopped it matching that pattern, so what arrives
+		// here now is the real resolution and can be asserted exactly.
 		const url = String(FakeWorker.latest.url);
-		expect(url).toMatch(/^https?:\/\//u);
-		expect(url).toMatch(/\/worker\.(js|ts)$/u);
+		expect(url).toMatch(/^[a-z][a-z0-9+.-]*:/iu);
+		expect(url).toMatch(/\/worker\.js$/u);
 	});
 
 	it("exposes itself on window.thumbnailGen", () => {
