@@ -53,16 +53,16 @@
     "upgrade": "npx npm-check-updates -u && npm install"
   },
   "devDependencies": {
-    "@playwright/test": "1.62.1",
+    "@playwright/test": "1.63.0",
     "@privyid/ghostscript": "0.1.0-alpha.1",
-    "@types/node": "^26.4.1",
-    "exifreader": "^4.44.0",
+    "@types/node": "^26.6.1",
+    "exifreader": "^4.45.0",
     "jsdom": "^30.0.1",
-    "oxfmt": "0.66.0",
-    "oxlint": "1.81.0",
+    "oxfmt": "0.68.0",
+    "oxlint": "1.83.0",
     "oxlint-tsgolint": "7.0.2001",
-    "rolldown": "^1.2.6",
+    "rolldown": "^1.2.8",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.1"
   }
 }
