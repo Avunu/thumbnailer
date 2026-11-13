@@ -196,11 +196,11 @@
     "utif": {
       "flake": false,
       "locked": {
-        "lastModified": 1794077614,
-        "narHash": "sha256-bE0ZHhtuQGSDbw7B+uZhDCib2jDm+n+EadtsarPhsPA=",
+        "lastModified": 1794316297,
+        "narHash": "sha256-FJAiPve5AmGrbRDbeLmJu7l7PPAycDBlk8OPKflqLPo=",
         "owner": "photopea",
         "repo": "UTIF.js",
-        "rev": "e7f41d49e5e203c5139994eb12e1400bcae2b009",
+        "rev": "182b0fd2d438d471d05fb41917b345930c687601",
         "type": "github"
       },
       "original": {
