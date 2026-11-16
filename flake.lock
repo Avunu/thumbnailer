@@ -36,11 +36,11 @@
         "systems": "systems"
       },
       "locked": {
-        "lastModified": 1792709690,
+        "lastModified": 1794427683,
         "narHash": "sha256-o7ey9gEilsxaifqJWnBDlYSKbNWYQYtKwDyXeZU2kaU=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "bd4888409339808dbaa94e2358c2c4df74b8e657",
+        "rev": "cd489559845d81f673a12885576016c65cbe9363",
         "type": "github"
       },
       "original": {
@@ -104,11 +104,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1794042290,
-        "narHash": "sha256-ziZn2PvCJE5JEEpqTdxXwJpPB+L3YqoCpTAMCzyaP3U=",
+        "lastModified": 1794386569,
+        "narHash": "sha256-x9sADJvoVG0L6RejZB+/BB4YiGZFBZrfTlhF4uBq1tQ=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "f4a03c008967841f2a0b3cb7c436fc6fc31671f6",
+        "rev": "d4f25a3e562008648d45bcf2d70bcc7422cad84e",
         "type": "github"
       },
       "original": {
@@ -196,11 +196,11 @@
     "utif": {
       "flake": false,
       "locked": {
-        "lastModified": 1794077614,
-        "narHash": "sha256-bE0ZHhtuQGSDbw7B+uZhDCib2jDm+n+EadtsarPhsPA=",
+        "lastModified": 1794488574,
+        "narHash": "sha256-nNv8Pkp7yL9dxV4TH5BonbwfKYAZ4FxchvvzU+Pr/rI=",
         "owner": "photopea",
         "repo": "UTIF.js",
-        "rev": "e7f41d49e5e203c5139994eb12e1400bcae2b009",
+        "rev": "d5f4afefa9bde9f5ac1ee9782983088f6ffbf5e9",
         "type": "github"
       },
       "original": {
