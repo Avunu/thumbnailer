@@ -6,10 +6,10 @@
     "license": "AGPL-3.0-only",
     "require": {
         "php": ">=8.1",
-        "yahnis-elsts/plugin-update-checker": "^5.6"
+        "yahnis-elsts/plugin-update-checker": "^6.0"
     },
     "require-dev": {
-        "php-stubs/wordpress-stubs": "^6.8",
+        "php-stubs/wordpress-stubs": "^7.1",
         "phpunit/phpunit": "^13",
         "szepeviktor/phpstan-wordpress": "^2.0"
     },
