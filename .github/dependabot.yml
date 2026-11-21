@@ -1,8 +1,9 @@
 # All five ecosystems this repo actually depends on, each grouped into a single
 # PR so a day's bumps arrive as one review rather than a dozen.
 #
-# The `chore` prefix is deliberate: Release Please cuts a release from `fix:`
-# and `feat:` commits, so dependency bumps must never trigger one on their own.
+# The `fix(deps)` prefix is deliberate: it makes each merged dependency bump ship as a patch
+# release. Release Please cuts a release from `fix:` and `feat:` commits, and `fix(deps)` is a
+# `fix:` commit.
 #
 # The `nix` entry is what makes deleting the vendor/utif git submodule work.
 # UTIF.js is now a flake input, so flake.lock is the single pin for it — no
@@ -18,7 +19,7 @@ updates:
     cooldown:
       default-days: 7
     commit-message:
-      prefix: chore
+      prefix: fix(deps)
     groups:
       nix:
         patterns: ["*"]
@@ -30,7 +31,7 @@ updates:
     cooldown:
       default-days: 7
     commit-message:
-      prefix: chore
+      prefix: fix(deps)
     groups:
       github-actions:
         patterns: ["*"]
@@ -42,7 +43,7 @@ updates:
     cooldown:
       default-days: 7
     commit-message:
-      prefix: chore
+      prefix: fix(deps)
     groups:
       npm:
         patterns: ["*"]
@@ -56,7 +57,7 @@ updates:
     cooldown:
       default-days: 7
     commit-message:
-      prefix: chore
+      prefix: fix(deps)
     groups:
       playground:
         patterns: ["*"]
@@ -68,7 +69,7 @@ updates:
     cooldown:
       default-days: 7
     commit-message:
-      prefix: chore
+      prefix: fix(deps)
     groups:
       composer:
         patterns: ["*"]
