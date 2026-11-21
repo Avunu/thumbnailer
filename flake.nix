@@ -9,8 +9,6 @@
     # dependency hash to keep in sync.
     composition-c4.url = "github:fossar/composition-c4";
 
-    git-hooks.url = "github:cachix/git-hooks.nix";
-
     # Keeps playwright-driver and the browsers pinned to the same release as the
     # @playwright/test npm package. nixpkgs makes no such guarantee, and a
     # driver/runner mismatch surfaces as an unrelated-looking protocol error.
@@ -35,7 +33,6 @@
       nixpkgs,
       flake-utils,
       composition-c4,
-      git-hooks,
       playwright,
       utif,
     }:
@@ -222,43 +219,6 @@
             inherit buildPhase;
             installPhase = "touch $out";
           };
-
-        preCommitCheck = git-hooks.lib.${system}.run {
-          inherit src;
-          hooks = {
-            # PHPStan needs vendor/ and the npm gate needs node_modules, neither
-            # of which exists in the read-only `nix flake check` sandbox. Running
-            # them at pre-push means the dev shell installs them locally while
-            # the sandboxed flake check still validates the hook config itself.
-            # Both entries are absolute store paths, and the npm one exports its
-            # own PATH. A hook runs in whatever environment `git push` had, which
-            # is generally not the dev shell — going through `composer phpstan`
-            # here meant the hook died with "phpstan: command not found" for
-            # anyone pushing from a plain terminal.
-            phpstan = {
-              enable = true;
-              name = "phpstan (level 8, WordPress-aware)";
-              package = pkgs.phpstan;
-              entry = "${pkgs.phpstan}/bin/phpstan analyse --no-progress --no-ansi --memory-limit=2G";
-              files = "\\.php$";
-              pass_filenames = false;
-              stages = [ "pre-push" ];
-            };
-            assets-check = {
-              enable = true;
-              name = "asset checks (oxfmt + oxlint + tsc + versions)";
-              entry = toString (
-                pkgs.writeShellScript "thumbnailer-assets-check" ''
-                  export PATH="${lib.makeBinPath [ nodejs ]}:$PATH"
-                  exec npm run check
-                ''
-              );
-              files = "\\.(ts|mjs|json)$";
-              pass_filenames = false;
-              stages = [ "pre-push" ];
-            };
-          };
-        };
       in
       {
         packages = {
@@ -268,8 +228,6 @@
         };
 
         checks = {
-          pre-commit = preCommitCheck;
-
           static = nodeCheck "static" {
             buildPhase = ''
               runHook preBuild
@@ -333,14 +291,13 @@
               # tests/playground/run.mjs extracts the release zip before
               # mounting it into WordPress.
               pkgs.unzip
-            ]
-            ++ preCommitCheck.enabledPackages;
+            ];
 
-            # Installs the git hooks, then makes the same UTIF symlink the
-            # derivations do — so a bare `nix develop` yields a checkout that
-            # builds, with no manual vendoring step.
+            # Makes the same UTIF symlink the derivations do, so a bare
+            # `nix develop` yields a checkout that builds with no manual
+            # vendoring step. Git hooks are not installed here: they come from
+            # prek and .pre-commit-config.yaml, and never need this shell.
             shellHook = ''
-              ${preCommitCheck.shellHook}
               ${linkUtif}
               echo "thumbnailer: third-party/utif linked from the flake pin."
             '';

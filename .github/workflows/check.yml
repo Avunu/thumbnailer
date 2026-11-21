@@ -32,11 +32,11 @@ jobs:
     steps:
       # fetch-depth: 0 because on `push` the filter diffs against the previous
       # commit rather than a merge base.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
-      - uses: dorny/paths-filter@v4
+      - uses: dorny/paths-filter@v4.0.3
         id: filter
         with:
           # Each group includes this workflow so a CI change re-validates
@@ -91,8 +91,8 @@ jobs:
     if: needs.changes.outputs.assets == 'true' || needs.changes.outputs.php == 'true'
     runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' || fromJSON('["self-hosted","nixos"]') }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: actions/checkout@v7.0.1
+      - uses: DeterminateSystems/nix-installer-action@v23
         if: runner.environment == 'github-hosted'
       - run: nix build .#checks.x86_64-linux.static -L
 
@@ -101,8 +101,8 @@ jobs:
     if: needs.changes.outputs.assets == 'true'
     runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' || fromJSON('["self-hosted","nixos"]') }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: actions/checkout@v7.0.1
+      - uses: DeterminateSystems/nix-installer-action@v23
         if: runner.environment == 'github-hosted'
       - run: nix build .#checks.x86_64-linux.vitest -L
 
@@ -112,8 +112,8 @@ jobs:
     if: needs.changes.outputs.assets == 'true'
     runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' || fromJSON('["self-hosted","nixos"]') }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: actions/checkout@v7.0.1
+      - uses: DeterminateSystems/nix-installer-action@v23
         if: runner.environment == 'github-hosted'
       # Browsers come from the Nix store via PLAYWRIGHT_BROWSERS_PATH, so there
       # is no `playwright install` step and no download at test time.
@@ -124,8 +124,8 @@ jobs:
     if: needs.changes.outputs.php == 'true'
     runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' || fromJSON('["self-hosted","nixos"]') }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: actions/checkout@v7.0.1
+      - uses: DeterminateSystems/nix-installer-action@v23
         if: runner.environment == 'github-hosted'
       - run: nix build .#checks.x86_64-linux.phpstan -L
 
@@ -134,8 +134,8 @@ jobs:
     if: needs.changes.outputs.php == 'true'
     runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' || fromJSON('["self-hosted","nixos"]') }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: actions/checkout@v7.0.1
+      - uses: DeterminateSystems/nix-installer-action@v23
         if: runner.environment == 'github-hosted'
       - run: nix build .#checks.x86_64-linux.phpunit -L
 
@@ -145,8 +145,8 @@ jobs:
     if: needs.changes.outputs.package == 'true'
     runs-on: ${{ github.event.pull_request.head.repo.fork && 'ubuntu-latest' || fromJSON('["self-hosted","nixos"]') }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: actions/checkout@v7.0.1
+      - uses: DeterminateSystems/nix-installer-action@v23
         if: runner.environment == 'github-hosted'
 
       - name: Build the release zip
@@ -163,7 +163,7 @@ jobs:
           '
 
       - name: Upload the plugin zip
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: thumbnailer-zip
           path: result/thumbnailer.zip

@@ -126,7 +126,9 @@ nix develop
 npm ci
 ```
 
-The shell supplies `third-party/utif` symlinked from the pinned flake input, PHP with Composer and PHPStan, Node, and Playwright with its browsers, plus git hooks installed at the `pre-push` stage. It deliberately does **not** supply `node_modules` — linking it from the store would make it read-only and break `npm ci`/`npm install` inside the shell — so run `npm ci` yourself once.
+The shell supplies `third-party/utif` symlinked from the pinned flake input, PHP with Composer and PHPStan, Node, and Playwright with its browsers. It deliberately does **not** supply `node_modules` — linking it from the store would make it read-only and break `npm ci`/`npm install` inside the shell — so run `npm ci` yourself once.
+
+The pre-push hooks in `.pre-commit-config.yaml` run through [prek](https://github.com/j178/prek) and need no Nix. Install them with `uv tool install prek`, then `prek install`.
 
 `third-party/utif` is **not** in git. UTIF.js used to be a submodule; it is now the `utif` flake input, symlinked into place by both the dev shell and every derivation, so `nix build` and `nix develop` can never resolve different sources. Dependabot's `nix` ecosystem keeps the pin current. A plain `git clone && npm install` will not build — use `nix develop`.
 
