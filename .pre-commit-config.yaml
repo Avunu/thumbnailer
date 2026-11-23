@@ -1,0 +1,35 @@
+# Git hooks, run by prek (https://github.com/j178/prek), which reads this file
+# unchanged. Setup: `uv tool install prek`, then `prek install`. No Nix needed.
+#
+# Both hooks run at pre-push over the whole tree, as they did under the
+# git-hooks.nix wiring that flake.nix used to carry. They need the dependency
+# trees that are not in git: vendor/ (`composer install`) for PHPStan, and
+# node_modules/ (`npm ci`) for the asset checks.
+
+default_install_hook_types: [pre-push]
+
+repos:
+  - repo: local
+    hooks:
+      - id: phpstan
+        name: phpstan (level 8, WordPress-aware)
+        # Pinned to 2.3.5, the phpstan that nixpkgs provided at the flake.lock
+        # revision. composer.json `replace`s phpstan/phpstan, so composer never
+        # installs it and this pinned install is the only copy.
+        language: php
+        additional_dependencies: ["phpstan/phpstan:2.3.5"]
+        entry: phpstan analyse --no-progress --no-ansi --memory-limit=2G
+        files: '\.php$'
+        pass_filenames: false
+        stages: [pre-push]
+
+      # One hook runs the whole chain. `npm run check` is format:check, lint,
+      # lint:typecheck, typecheck and versions, in that order, as the nix hook
+      # ran it. Splitting it would run the same tools twice.
+      - id: assets-check
+        name: asset checks (oxfmt + oxlint + tsc + versions)
+        language: system
+        entry: npm run check
+        files: '\.(ts|mjs|json)$'
+        pass_filenames: false
+        stages: [pre-push]
